@@ -159,6 +159,7 @@ class DbfFile {
                     fieldArray[j].getOffset() + fieldArray[j].getSize()).trim();
                 }
             }
+        //---    
         } catch (IOException ex) {
             Logger.getLogger(DbfFile.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
