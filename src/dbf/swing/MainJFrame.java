@@ -5,14 +5,7 @@
  */
 package dbf.swing;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JTable;
 import javax.swing.JFileChooser;
 
@@ -21,71 +14,28 @@ import javax.swing.JFileChooser;
  * @author spidchenko.d
  */
 
-class Field{
-    String name;    //Название столбца
-    int size;       //Ширина столбца в байтах
-    int offset;     //Смещение от начала записи в байтах
-        
-    public Field(String newName, int newSize, int newOffset){
-        name = newName;
-        size = newSize;
-        offset = newOffset;
-    }
-        
-    static Field[] initializeFieldsArray(int fieldsCount){
-        Field [] fieldArrayReturn = new Field [fieldsCount];  //Массив столбцов
-        
-        for (int i = 0; i< fieldArrayReturn.length; i++){
-                fieldArrayReturn[i] = new Field("", 0, 0);
-            }
-        return fieldArrayReturn;
-    }
-}
-
 public class MainJFrame extends javax.swing.JFrame {
-
-    static class DbfFile {
-        static final String FILE_PATH ="E:\\0302.dbf";
-        static final int HEADER_FIELD_LENGTH = 32;  //Длина описания столбца - 32 байта
-        static final int CURRENT_FIELD_NAME = 9;    //0-9 байты
-        static final int CURRENT_FIELD_LENGTH = 16; //16й байт с длиной текущего столбца
-        static final Charset FILE_CHARSET = Charset.forName("cp866");//Кодировка
-        static int endOfHeaderOffset = 0;           //Смещение в байтах конца заголовка
-        static int numOfFields = 0;                 //Количество столбцов таблицы
-        static int numOfRecords = 0;                //Количество записей в таблице
-        static int oneRecordLength = 0;             //Длина одной записи в байтах
-        static Field [] fieldArray;
-        static String [] tableTitles;               //Массив заголовков столбцов
-        static String [][] tableData;               //Массив информационных записей 
-    } 
-    
+    DbfFile currentFile = null;
+  
     /**
      * Creates new form MainJFrame
      */
-    public void BlaBla(){
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            DbfFile.tableData,
-            DbfFile.tableTitles
-        ));
-        
-        jTable1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);  //Никакого ресайза!
-        if (jTable1.getColumnModel().getColumnCount() > 0) {
-            for(int i = 0; i< DbfFile.numOfFields; i++){
-                jTable1.getColumnModel().getColumn(i).setMinWidth(DbfFile.fieldArray[i].size*7);
-            }
-        }    
-    }
     
     public MainJFrame() {
         initComponents();
+        
+        //currentFile = new DbfFile("E:\\test.dbf");      //33 18f
+        //currentFile = new DbfFile("E:\\bi89096.dbf"); //33 27f
+        currentFile = new DbfFile("E:\\0302.dbf");    //34 31f
+        currentFile.printFileInfo();
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            DbfFile.tableData,
-            DbfFile.tableTitles
+                currentFile.getTableDataToShow(),
+                currentFile.getTableTitles()
         ));
         jTable1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);  //Никакого ресайза!
         if (jTable1.getColumnModel().getColumnCount() > 0) {
-            for(int i = 0; i< DbfFile.numOfFields; i++){
-                jTable1.getColumnModel().getColumn(i).setMinWidth(DbfFile.fieldArray[i].size*7);
+            for(int i = 0; i< currentFile.getNumOfFields(); i++){
+                jTable1.getColumnModel().getColumn(i).setMinWidth(currentFile.getFieldArray()[i].getSize()*7);
             }
         }
         
@@ -208,132 +158,6 @@ public class MainJFrame extends javax.swing.JFrame {
         }
         //</editor-fold>
 
-        FileInputStream inputStream = null;
-        //int c;
-        //byte[] b = new byte [32];
-        byte[] byteBufferArray = new byte[1024];   //Байтовый буфер для чтения. Самая длинная запись которую я видел - 505 байт, пусть будет в 2 раза больше
-        //int offsetCounter = 0; 
-        
-        try{
-            inputStream = new FileInputStream(DbfFile.FILE_PATH);
-        
-            //inputStream.skip(32);   //Database field descriptor bytes
-            inputStream.read(byteBufferArray, 0, 32);
-            //for (int j = 0; j<32; j++)
-            //    System.out.print(Integer.toHexString(b[j])+" ");
-            //System.out.print("\n");          
-            
-            //Делаем unsigned byte массив [4-7] байтов (количество записей, старший байт справа)
-            int [] byteArray = new int[4];
-            for(int i = 0; i<4; i++){
-                byteArray[i] = (byteBufferArray[i+4]>0)?byteBufferArray[i+4]:(byteBufferArray[i+4] & 0xFF);
-            }
-            //сдвигаем байты (старший слева) и получаем количество записей (32бит число)
-            DbfFile.numOfRecords = byteArray[0]|(byteArray[1]<<8)|(byteArray[2]<<16)|(byteArray[3]<<24);
-                       
-             //Делаем unsigned byte массив [10-11] байтов (длина одной записи, старший байт справа)
-            for(int i = 0; i<2; i++){
-                byteArray[i] = (byteBufferArray[i+10]>0)?byteBufferArray[i+10]:(byteBufferArray[i+10] & 0xFF);
-            }           
-            //сдвигаем байты (старший слева) и получаем длину одной записи (16бит число)
-            DbfFile.oneRecordLength = byteArray[0]|(byteArray[1]<<8);
-                                    
-            while(inputStream.read()!=0xD){     //Поиск конца заголовка: байт 0xD
-                DbfFile.endOfHeaderOffset++;
-            }
-            
-            //Считаем количество столбцов в таблице
-            DbfFile.numOfFields = DbfFile.endOfHeaderOffset/DbfFile.HEADER_FIELD_LENGTH; 
-            
-            inputStream = new FileInputStream(DbfFile.FILE_PATH);  //Откроем еше раз, чтобы вернуться в начало файла, как иначе хз
-            inputStream.skip(32);       //Пропустили заголовок
-
-            //Парсим описания столбцов таблицы:
-            DbfFile.fieldArray = Field.initializeFieldsArray(DbfFile.numOfFields);  //Инициализируем массив столбцов
-            
-            for (int i = 0; i < DbfFile.fieldArray.length; i++){
-                inputStream.read(byteBufferArray, 0, DbfFile.HEADER_FIELD_LENGTH);    //32 байта 
-                
-                //Название столбца (вытащили из байтового массива и убрали пробелы с конца одной коммандой! >:3 )
-                //new String корректно отработает с default charset ASCII, на линуксе или в Японии с UTF Default будут проблемы 
-                DbfFile.fieldArray[i].name = new String(Arrays.copyOfRange(byteBufferArray, 0, DbfFile.CURRENT_FIELD_NAME)).trim();  //9 байт
-                
-                //Размер столбца
-                DbfFile.fieldArray[i].size = (byteBufferArray[DbfFile.CURRENT_FIELD_LENGTH]>0)?
-                        byteBufferArray[DbfFile.CURRENT_FIELD_LENGTH]:
-                        byteBufferArray[DbfFile.CURRENT_FIELD_LENGTH] & 0xFF;
-                
-                if (i != 0){
-                    DbfFile.fieldArray[i].offset = DbfFile.fieldArray[i-1].offset+DbfFile.fieldArray[i-1].size;
-                } else{
-                    DbfFile.fieldArray[i].offset = 0;
-                }
-                //Сдвиг от начала записи в байтах
-                //DbfFile.fieldArray[i].offset = offsetCounter;
-            }
-            
-
-
-            
-            //for (int i = 0; i< DbfFile.oneRecordLength; i++){
-            //    System.out.print((char)inputStream.read());
-            //}
-            System.out.print("\n");
-            //System.out.println((char)inputStream.read());
-            
-            
-            System.out.format("endOfHeaderOffset:%4d \nnumOfFields:%3d \nnumOfRecords:%4d \noneRecordLength:%4d\n\n", DbfFile.endOfHeaderOffset, DbfFile.numOfFields, DbfFile.numOfRecords, DbfFile.oneRecordLength);
-            
-            for (Field fieldArray1 : DbfFile.fieldArray) {
-                System.out.format("%10s | %5d | %5d \n", fieldArray1.name, fieldArray1.size, fieldArray1.offset);
-            }
-        
-            //Файловый курсор сейчас перед 0xD, пропустим [0xD, 0x0]
-            inputStream.skip(2);
-            
-            String currentLine = "";
-            
-            DbfFile.tableData = new String [DbfFile.numOfRecords][DbfFile.numOfFields];
-            for (int i = 0; i<DbfFile.numOfRecords; i++){
-                //Считали одну запись в byteBufferArray
-                inputStream.read(byteBufferArray, 0, DbfFile.oneRecordLength);
-                //Декодировали массив byteBufferArray, обернутый в байтбуффер в UTF-16 
-                //Имеем на выходе строку UTF-16 с полями из DBF файла
-                currentLine = DbfFile.FILE_CHARSET.decode(ByteBuffer.wrap(byteBufferArray,0, DbfFile.oneRecordLength)).toString();
-                for(int j =0; j < DbfFile.numOfFields; j++){
-                    DbfFile.tableData[i][j] = currentLine.substring(DbfFile.fieldArray[j].offset+1, //Почему смещение на 1 байт вправо?
-                                                                    DbfFile.fieldArray[j].offset + DbfFile.fieldArray[j].size+1).trim();
-                }
-            }
-            
-            
-            //Формируем для таблицы jTable данные
-            //Извлекли из массива только названия столбцов для отображения:
-            DbfFile.tableTitles = new String[DbfFile.fieldArray.length];
-            for(int i = 0; i < DbfFile.fieldArray.length; i++){
-                DbfFile.tableTitles[i] = DbfFile.fieldArray[i].name;
-            }
-            
-            
-            
-            /*            for(int i =0; i < DbfFile.numOfRecords; i++)
-            for(int j =0; j < DbfFile.numOfFields; j++){
-            DbfFile.tableData[i][j]=
-            }
-            */
-            
-            
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            if (inputStream != null) {try {inputStream.close();} catch (IOException ex) {
-                    Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
-                }
-}
-        }
-        
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
