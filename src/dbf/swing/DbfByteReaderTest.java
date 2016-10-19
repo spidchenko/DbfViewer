@@ -65,11 +65,12 @@ class Field{
 }
 
 class DbfFile {
-    static final int HEADER_FIELD_LENGTH = 32;  //Длина описания столбца - 32 байта
+    static final int SERVICE_HEADER_LENGTH = 32;//Первые 32 байта файла - служебная информация
+    static final int FIELD_DESCRIPTION_LENGTH = 32;  //Длина описания столбца - 32 байта
     static final int CURRENT_FIELD_NAME = 9;    //0-9 байты
     static final int CURRENT_FIELD_LENGTH = 16; //16й байт с длиной текущего столбца
     static final Charset FILE_CHARSET = Charset.forName("cp866");//Кодировка
-    private int fieldsDescribeHeaderLength = 0;  //Длина заголовка с описанием столбцов
+    private int fieldsDescribeHeaderLength = 0;  //Длина заголовка с описанием столбцов (поиск 0x0D байта, не делать так, может быть в описании колонок!)
     private int headerLength = 0;                //Полная длина заголовка в байтах (из 8-9 байта)
     private int numOfFields = 0;                 //Количество столбцов таблицы
     private int numOfRecords = 0;                //Количество записей в таблице
@@ -87,7 +88,7 @@ class DbfFile {
                 
         try{
             inputStream = new FileInputStream(filePath);
-            inputStream.read(byteBufferArray, 0, 32);
+            inputStream.read(byteBufferArray, 0, SERVICE_HEADER_LENGTH);
             //Делаем unsigned byte массив [4-7] байтов (количество записей, старший байт справа)
             int [] byteArray = new int[4];
             for(int i = 0; i<4; i++){
@@ -114,20 +115,20 @@ class DbfFile {
             }
         
             //Считаем количество столбцов в таблице
-            numOfFields = fieldsDescribeHeaderLength/HEADER_FIELD_LENGTH; 
-        
-            inputStream = new FileInputStream(filePath);  //Откроем еше раз, чтобы вернуться в начало файла, как иначе хз
-            inputStream.skip(32);       //Пропустили предзаголовок
+            numOfFields = (headerLength - SERVICE_HEADER_LENGTH - 1)/FIELD_DESCRIPTION_LENGTH;
+            
+            inputStream = new FileInputStream(filePath);    //Откроем еше раз, чтобы вернуться в начало файла, как иначе хз
+            inputStream.skip(SERVICE_HEADER_LENGTH);    //Пропустили служебный предзаголовок
 
         //Парсим описания столбцов таблицы (fieldArray):
             fieldArray = Field.initializeFieldsArray(numOfFields);  //Инициализируем массив столбцов
             for (int i = 0; i < fieldArray.length; i++){
-                inputStream.read(byteBufferArray, 0, HEADER_FIELD_LENGTH);    //32 байта 
+                inputStream.read(byteBufferArray, 0, FIELD_DESCRIPTION_LENGTH);    //32 байта 
                 //Название столбца (вытащили из байтового массива и убрали пробелы с конца одной коммандой! >:3 )
                 //new String корректно отработает с default charset ASCII, на линуксе или в Японии с UTF Default будут проблемы 
                 fieldArray[i].setName(new String(Arrays.copyOfRange(byteBufferArray, 0, CURRENT_FIELD_NAME)).trim());  //9 байт
                 //Размер столбца
-                if (byteBufferArray[CURRENT_FIELD_LENGTH]>0){
+                if (byteBufferArray[CURRENT_FIELD_LENGTH] > 0){
                     fieldArray[i].setSize(byteBufferArray[CURRENT_FIELD_LENGTH]);
                 } else{
                     fieldArray[i].setSize(byteBufferArray[CURRENT_FIELD_LENGTH] & 0xFF);
@@ -184,7 +185,8 @@ class DbfFile {
     Field[] getFieldArray(){
         return fieldArray;
     }
-    String[] getTableTitles(){
+    
+     String[] getTableTitles(){
         //Формируем для таблицы jTable данные
         //Извлекли из массива только названия столбцов для отображения:
         String tableTitles[] = new String[fieldArray.length];
@@ -193,10 +195,64 @@ class DbfFile {
         }
         return tableTitles;
     }
-    
+ 
+     String[] getTableTitles(String[] columsToShow){
+        String onlyNames[] = new String[fieldArray.length];
+        for(int i = 0; i < fieldArray.length; i++){
+            onlyNames[i] = fieldArray[i].getName();
+        }
+        String tableTitles[] = new String[columsToShow.length];//Максимальная длина
+        String fieldArrayInString = Arrays.toString(onlyNames);
+        
+        for(int i = 0; i < columsToShow.length; i++){
+            if(fieldArrayInString.contains(columsToShow[i].toUpperCase())){
+                tableTitles[i] = columsToShow[i].toUpperCase();
+            } else
+                if(columsToShow[i].toUpperCase().equals("№")){
+                    tableTitles[i] = "№";
+                }
+                else{
+                    System.out.println("Column "+columsToShow[i].toUpperCase()+" not found in "+fieldArrayInString);     //NEED THROW SOMETHNIG HERE!!!!!!!
+                }
+        }
+        System.out.print(Arrays.toString(tableTitles));
+        return tableTitles;
+        //Есть массив названий необходимых колонок
+        //поиск таких названий в fieldArray
+        //формируем массив строк и возвращаем если есть названия
+     }
+     
     Object[][] getTableDataToShow(){    //Массив записей для jTable
         return tableData;
     }
+    
+    Object[][] getTableDataToShow(String[] columsToShow){
+        String [] titles = getTableTitles(columsToShow);
+        Object [][] newTableData = new String [numOfRecords][titles.length];
+        int currentColumnOffset = 0;
+        //Вот здесь магия выбора столбцов по названию
+        //Проходим по количеству столбцов, которые нужно выбрать (k),
+        //проходим по названиям столбцов (j), если нашли тот, который нужно выбрать, то
+        //копируем весь столбец(по i вниз) из tableData в newTableData
+        for(int k = 0; k < titles.length; k++){
+            for (int j = 0; j < numOfFields; j++){
+                if(fieldArray[j].getName().equals(titles[k]))
+                    for(int i = 0; i < numOfRecords; i++){
+                        newTableData[i][k] = tableData[i][j];
+                    }           //Костыль для нумерации строчек
+                else if(titles[k].equals("№"))
+                    for(int i = 0; i < numOfRecords; i++){
+                        newTableData[i][k] = Integer.toString(i+1);
+                    }
+            }            
+        }
+
+        
+        
+        return newTableData;    
+        }
+        //System.out.println(Arrays.toString(titles));
+        //!
     
     int getOneRecordLength(){
         return oneRecordLength;

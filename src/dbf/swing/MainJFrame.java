@@ -11,6 +11,9 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  * СДЕЛАТЬ ПРОВЕРКУ НА СИГНАТУРУ ДБФ ФАЙЛА!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!111111111111111111
+ * Может нумерацию сделать добавив столбец и переместив его в начало?
+ * Ширину столбца по макс. длине содержимого - сортировка и ленгтх первого?
+ * Выбрасывать эксэпшн при инвалидной структуре столбцов - пустое название и длина?
  * @author spidchenko.d
  */
 
@@ -27,6 +30,7 @@ public class MainJFrame extends javax.swing.JFrame {
         //currentFile = new DbfFile("E:\\test.dbf");      //33 18f
         //currentFile = new DbfFile("E:\\bi89096.dbf"); //33 27f
         currentFile = new DbfFile("E:\\0302.dbf");    //34 31f
+        //currentFile = new DbfFile("E:\\postal.dbf");
         currentFile.printFileInfo();
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
                 currentFile.getTableDataToShow(),
@@ -38,6 +42,14 @@ public class MainJFrame extends javax.swing.JFrame {
                 jTable1.getColumnModel().getColumn(i).setMinWidth(currentFile.getFieldArray()[i].getSize()*8);
             }
         }
+       // String[] testSome = {"SAB","TT","asd"};
+       jTable1.setModel(new javax.swing.table.DefaultTableModel(
+                currentFile.getTableDataToShow(new String[]{"№","s","naz"}),
+                currentFile.getTableTitles(new String[]{"№","s","naz"})
+        ));
+        //currentFile.getTableTitles(new String[]{"SAB","TT","s","NLSK"});
+        //currentFile.getTableDataToShow(new String[]{"SAB","TT","s","NLSK"});
+        
         
     }
 
@@ -168,8 +180,10 @@ public class MainJFrame extends javax.swing.JFrame {
             if (jTable1.getColumnModel().getColumnCount() > 0) {
                 for(int i = 0; i< currentFile.getNumOfFields(); i++){
                     jTable1.getColumnModel().getColumn(i).setMinWidth(currentFile.getFieldArray()[i].getSize()*8);
+                }
             }
-        }
+            currentFile.printFileInfo();
+            currentFile.printRecords();
             /*
              * Какие-то действия.
              */
