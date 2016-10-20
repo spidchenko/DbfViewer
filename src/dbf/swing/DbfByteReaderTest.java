@@ -124,9 +124,9 @@ class DbfFile {
             fieldArray = Field.initializeFieldsArray(numOfFields);  //Инициализируем массив столбцов
             for (int i = 0; i < fieldArray.length; i++){
                 inputStream.read(byteBufferArray, 0, FIELD_DESCRIPTION_LENGTH);    //32 байта 
-                //Название столбца (вытащили из байтового массива и убрали пробелы с конца одной коммандой! >:3 )
+                //Название столбца (вытащили из байтового массива и убрали пробелы с конца, перевели в верхний регистр одной коммандой! >:3 )
                 //new String корректно отработает с default charset ASCII, на линуксе или в Японии с UTF Default будут проблемы 
-                fieldArray[i].setName(new String(Arrays.copyOfRange(byteBufferArray, 0, CURRENT_FIELD_NAME)).trim());  //9 байт
+                fieldArray[i].setName(new String(Arrays.copyOfRange(byteBufferArray, 0, CURRENT_FIELD_NAME)).trim().toUpperCase());  //9 байт
                 //Размер столбца
                 if (byteBufferArray[CURRENT_FIELD_LENGTH] > 0){
                     fieldArray[i].setSize(byteBufferArray[CURRENT_FIELD_LENGTH]);
@@ -208,7 +208,7 @@ class DbfFile {
             if(fieldArrayInString.contains(columsToShow[i].toUpperCase())){
                 tableTitles[i] = columsToShow[i].toUpperCase();
             } else
-                if(columsToShow[i].toUpperCase().equals("№")){
+                if(columsToShow[i].equals("№")){
                     tableTitles[i] = "№";
                 }
                 else{
@@ -236,7 +236,7 @@ class DbfFile {
         //копируем весь столбец(по i вниз) из tableData в newTableData
         for(int k = 0; k < titles.length; k++){
             for (int j = 0; j < numOfFields; j++){
-                if(fieldArray[j].getName().equals(titles[k]))
+                if(fieldArray[j].getName().equalsIgnoreCase(titles[k]))
                     for(int i = 0; i < numOfRecords; i++){
                         newTableData[i][k] = tableData[i][j];
                     }           //Костыль для нумерации строчек

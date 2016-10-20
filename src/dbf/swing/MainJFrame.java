@@ -5,9 +5,12 @@
  */
 package dbf.swing;
 
+import java.util.Arrays;
 import javax.swing.JTable;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  * СДЕЛАТЬ ПРОВЕРКУ НА СИГНАТУРУ ДБФ ФАЙЛА!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!111111111111111111
@@ -42,15 +45,7 @@ public class MainJFrame extends javax.swing.JFrame {
                 jTable1.getColumnModel().getColumn(i).setMinWidth(currentFile.getFieldArray()[i].getSize()*8);
             }
         }
-       // String[] testSome = {"SAB","TT","asd"};
-       jTable1.setModel(new javax.swing.table.DefaultTableModel(
-                currentFile.getTableDataToShow(new String[]{"№","s","naz"}),
-                currentFile.getTableTitles(new String[]{"№","s","naz"})
-        ));
-        //currentFile.getTableTitles(new String[]{"SAB","TT","s","NLSK"});
-        //currentFile.getTableDataToShow(new String[]{"SAB","TT","s","NLSK"});
-        
-        
+       
     }
 
     /**
@@ -64,6 +59,9 @@ public class MainJFrame extends javax.swing.JFrame {
 
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
+        jLabel1 = new javax.swing.JLabel();
+        jTextField1 = new javax.swing.JTextField();
+        jButton1 = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -105,6 +103,15 @@ public class MainJFrame extends javax.swing.JFrame {
             jTable1.getColumnModel().getColumn(3).setPreferredWidth(400);
             jTable1.getColumnModel().getColumn(3).setMaxWidth(400);
         }
+
+        jLabel1.setText("Введите через запятую названия столбцов, которые нужно отобразить (\"№\" для вывода номера строки):");
+
+        jButton1.setText("ОК");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         jMenu1.setText("Файл");
 
@@ -149,14 +156,26 @@ public class MainJFrame extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1031, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1031, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextField1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton1)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 359, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton1))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 334, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -182,6 +201,9 @@ public class MainJFrame extends javax.swing.JFrame {
                     jTable1.getColumnModel().getColumn(i).setMinWidth(currentFile.getFieldArray()[i].getSize()*8);
                 }
             }
+            //PZDC!
+            jTextField1.setText(Arrays.toString(currentFile.getTableTitles()).substring(1,Arrays.toString(currentFile.getTableTitles()).length()-1));
+            
             currentFile.printFileInfo();
             currentFile.printRecords();
             /*
@@ -193,6 +215,32 @@ public class MainJFrame extends javax.swing.JFrame {
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jMenuItem3ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        int numColumsToShow = 0;
+        String[] tempArray = new String [currentFile.getNumOfFields()];
+        Pattern pattern = Pattern.compile("[^,\\s]+");
+        Matcher matcher = pattern.matcher(jTextField1.getText());
+        while (matcher.find()){
+            tempArray[numColumsToShow++]=matcher.group();
+            System.out.println(tempArray[numColumsToShow-1]);
+            
+        }
+        String[] columsToShow = new String [numColumsToShow];
+        System.arraycopy(tempArray, 0, columsToShow, 0, numColumsToShow);
+        System.out.println(Arrays.toString(columsToShow));
+        System.out.println(numColumsToShow);
+        
+        
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+                currentFile.getTableDataToShow(columsToShow),
+                currentFile.getTableTitles(columsToShow)
+        ));
+        //currentFile.getTableTitles(new String[]{"SAB","TT","s","NLSK"});
+        //currentFile.getTableDataToShow(new String[]{"SAB","TT","s","NLSK"});
+        
+        
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -231,7 +279,9 @@ public class MainJFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
@@ -242,5 +292,6 @@ public class MainJFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JTable jTable1;
+    private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
 }
