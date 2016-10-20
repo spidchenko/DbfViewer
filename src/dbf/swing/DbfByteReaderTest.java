@@ -215,7 +215,7 @@ class DbfFile {
                     System.out.println("Column "+columsToShow[i].toUpperCase()+" not found in "+fieldArrayInString);     //NEED THROW SOMETHNIG HERE!!!!!!!
                 }
         }
-        System.out.print(Arrays.toString(tableTitles));
+        //System.out.print(Arrays.toString(tableTitles));
         return tableTitles;
         //Есть массив названий необходимых колонок
         //поиск таких названий в fieldArray
