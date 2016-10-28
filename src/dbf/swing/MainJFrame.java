@@ -470,8 +470,14 @@ public class MainJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
-        CheckBillJDialog dialog = new CheckBillJDialog(new javax.swing.JFrame(), true);
-        dialog.setVisible(true);
+        CheckBillJDialog dialog;
+        try {
+            dialog = new CheckBillJDialog(new javax.swing.JFrame(), true);
+            dialog.setVisible(true);
+        } catch (IOException ex) {
+            Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
     }//GEN-LAST:event_jMenuItem5ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed

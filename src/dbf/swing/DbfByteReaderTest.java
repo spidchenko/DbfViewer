@@ -79,6 +79,7 @@ class DbfFile {
         //------
     private String filePath = "";//E:\\0302.dbf"; 
     private Object[][] tableData;               //Данные для отображения в jTable
+    
         
     public DbfFile(String filePathToOpen){
         filePath = filePathToOpen;
@@ -154,7 +155,8 @@ class DbfFile {
                 inputStream.read(byteBufferArray, 0, oneRecordLength);
                 //Декодировали массив byteBufferArray, обернутый в байтбуффер в UTF-16 
                 //Имеем на выходе строку UTF-16 с полями из DBF файла
-                currentLine = FILE_CHARSET.decode(ByteBuffer.wrap(byteBufferArray,0, oneRecordLength)).toString();
+            //    currentLine = FILE_CHARSET.decode(ByteBuffer.wrap(byteBufferArray,0, oneRecordLength)).toString();    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                currentLine = Charset.forName("windows-1251").decode(ByteBuffer.wrap(byteBufferArray,0, oneRecordLength)).toString(); 
                 for(int j =0; j < numOfFields; j++){
                     tableData[i][j] = currentLine.substring(fieldArray[j].getOffset(),
                     fieldArray[j].getOffset() + fieldArray[j].getSize()).trim();
@@ -196,7 +198,7 @@ class DbfFile {
         return tableTitles;
     }
  
-     String[] getTableTitles(String[] columsToShow){
+     String[] getTableTitles(String[] columsToShow){        //Возвращает массив с названиями столбцов
         String onlyNames[] = new String[fieldArray.length];
         for(int i = 0; i < fieldArray.length; i++){
             onlyNames[i] = fieldArray[i].getName();
@@ -222,7 +224,7 @@ class DbfFile {
         //формируем массив строк и возвращаем если есть названия
      }
      
-    Object[][] getTableDataToShow(){    //Массив записей для jTable
+    Object[][] getTableDataToShow(){    //Возвращает массив записей для jTable
         return tableData;
     }
     
@@ -276,5 +278,22 @@ class DbfFile {
             }            
         System.out.print("\n");
         }
+    }
+    
+    String [] getDetalsOfPayment(String detalsOfPaymentRow){
+        String[] detalsOfPayment = new String[numOfRecords];           //Данные для поиска кода оплаты
+        int numFieldToGet=0;
+        //поиск столбца
+        for(int i = 0; i < numOfFields; i++){
+            if (fieldArray[i].getName().equals(detalsOfPaymentRow)){
+                numFieldToGet = i;
+                break;
+            }     
+        }
+        
+        for(int i = 0; i < numOfRecords; i++){
+            detalsOfPayment[i] = tableData[i][numFieldToGet].toString();
+        }
+        return detalsOfPayment;
     }
 }
