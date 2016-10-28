@@ -25,7 +25,7 @@ import java.io.*;
  * Выбрасывать эксэпшн при инвалидной структуре столбцов - пустое название и длина?
  * @author spidchenko.d
  */
-class settings implements Serializable{
+class settingsFields implements Serializable{
     final static String SETTINGS_FILE_NAME = "Settings.dat";
     private String dBUrl = "";
     private String dBTableName = "";
@@ -37,12 +37,7 @@ class settings implements Serializable{
     private String dbfColumnSumName = "";
     private String dbfColumnDescriptionName = "";
     private String dbfColumnBankAccountName = "";
-    
-     
-    boolean save(){
-        //Сохраняем в файл
-        return true;
-    }
+
     
 //<editor-fold defaultstate="collapsed" desc="GETERS-SETTERS">
     public String getdBUrl() {
@@ -127,6 +122,59 @@ class settings implements Serializable{
 //</editor-fold>
 }
 
+class appSettings {
+    settingsFields fields;
+    
+    appSettings(){
+        this.fields = new settingsFields();
+        try {
+            File settingsFile = new File(settingsFields.SETTINGS_FILE_NAME);
+            //Грузим из файла или создаем файл и пишем объект с пустыми полями
+            if (settingsFile.createNewFile()){                              //Файла не было
+                FileOutputStream fos = new FileOutputStream(settingsFile);
+                ObjectOutputStream oos = new ObjectOutputStream(fos);
+                oos.writeObject(fields);                                    //Записали в файл
+                oos.flush();
+                oos.close();
+            }
+            FileInputStream fis = new FileInputStream(settingsFile);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            try {
+                fields = (settingsFields)ois.readObject();                //Прочитали из файла
+            }catch (ClassNotFoundException ex) {
+                Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (FileNotFoundException ex) {
+            System.err.println("Файл с настройками не найден и не может быть создан.");
+        } catch (IOException ex) {
+            Logger.getLogger(appSettings.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    void saveAndReload(){
+        try {
+            File settingsFile = new File(settingsFields.SETTINGS_FILE_NAME);
+            FileOutputStream fos = new FileOutputStream(settingsFile);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(fields);                                    //Записали в файл
+            oos.flush();
+            oos.close();
+            
+            FileInputStream fis = new FileInputStream(settingsFile);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            try {
+                fields = (settingsFields)ois.readObject();                //Прочитали из файла
+            }catch (ClassNotFoundException ex) {
+                Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (FileNotFoundException ex) {
+            System.err.println("Файл с настройками не найден и не может быть создан.");
+        } catch (IOException ex) {
+            Logger.getLogger(appSettings.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+}
+
 public class MainJFrame extends javax.swing.JFrame {
     DbfFile currentFile = null;
     DBConnection dBConn = null;
@@ -134,7 +182,7 @@ public class MainJFrame extends javax.swing.JFrame {
     int badPaymentsNum = 0;
     int paidPaymentsNum = 0;
     javax.swing.table.DefaultTableModel tableModel;
-    settings appS;
+    appSettings currentSettings;
     
   
     /**
@@ -420,15 +468,11 @@ public class MainJFrame extends javax.swing.JFrame {
         //jTable1.addRowSelectionInterval(1, 10);
         jProgressBar1.setMaximum(currentFile.getNumOfRecords());
         dBConn = new DBConnection();
-        try {
-            dBConn.init();
-        } catch (IOException ex) {
-            Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        dBConn.init();
         
         Pattern codePattern = Pattern.compile("\\d{13}");   //13 цифр подряд
-        String [] paymentsSum = currentFile.getDetalsOfPayment(jComboBox1.getSelectedItem().toString());                //Настройки
-        String [] paymentsDescription = currentFile.getDetalsOfPayment(jComboBox2.getSelectedItem().toString());        //Настройки
+        String [] paymentsSum = currentFile.getDetalsOfPayment(currentSettings.fields.getDbfColumnSumName());                //Настройки
+        String [] paymentsDescription = currentFile.getDetalsOfPayment(currentSettings.fields.getDbfColumnDescriptionName());        //Настройки
         goodPaymentsNum = 0;
         badPaymentsNum = 0;
         paidPaymentsNum = 0;
@@ -439,7 +483,7 @@ public class MainJFrame extends javax.swing.JFrame {
                 for (int i = 0; i < paymentsDescription.length; i++){
             
                     Matcher matcher = codePattern.matcher(paymentsDescription[i]);
-                    if ((matcher.find())&&(paymentsSum[i].equals(appS.getDbfCorrectSum()))){                                                   //Настройки
+                    if ((matcher.find())&&(paymentsSum[i].equals(currentSettings.fields.getDbfCorrectSum()))){                                                   //Настройки
                         if (dBConn.writePayment(matcher.group())){
                             goodPaymentsNum++;
                         }else{
@@ -481,45 +525,24 @@ public class MainJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem5ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        appS = new settings();
+        currentSettings = new appSettings();
+        System.out.println(currentSettings.fields.getdBUrl());
         //appS.setdBUrl("321");
         
-//        appS.setdBUrl("localhost");
-//        appS.setdBTableName("khersontes_db");
-//        appS.setdBUser("root");
-//        appS.setdBPassword("root");
-//        appS.setDbfEncoding("windows-1251");
-//        appS.setDbfCorrectSum("111.00");
-//        appS.setDbfBankAccountNumber("35229201089096");
-//        appS.setDbfColumnSumName("FIELD5");
-//        appS.setDbfColumnDescriptionName("FIELD9");
-//        appS.setDbfColumnBankAccountName("FIELD?");
+        currentSettings.fields.setdBUrl("localhost");
+        currentSettings.fields.setdBTableName("khersontes_db");
+        currentSettings.fields.setdBUser("root");
+        currentSettings.fields.setdBPassword("root");
+        currentSettings.fields.setDbfEncoding("windows-1251");
+        currentSettings.fields.setDbfCorrectSum("111.00");
+        currentSettings.fields.setDbfBankAccountNumber("35229201089096");
+        currentSettings.fields.setDbfColumnSumName("FIELD5");
+        currentSettings.fields.setDbfColumnDescriptionName("FIELD9");
+        currentSettings.fields.setDbfColumnBankAccountName("FIELD?");
+        
+        currentSettings.saveAndReload();
 
-        try {
-            File settingsFile = new File(settings.SETTINGS_FILE_NAME);
-            //Грузим из файла или создаем файл и пишем объект с пустыми полями
-            if (settingsFile.createNewFile()){                              //Файла не было
-                FileOutputStream fos = new FileOutputStream(settingsFile);
-                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                oos.writeObject(appS);                                      //Записали в файл
-                oos.flush();
-                oos.close();
-            }
-            FileInputStream fis = new FileInputStream(settingsFile);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            try {
-                appS = (settings)ois.readObject();                //Прочитали из файла
-            }catch (ClassNotFoundException ex) {
-                Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            System.out.println(appS.getdBUrl());
-            
-        } catch (FileNotFoundException ex) {
-            System.err.println("Файл с настройками не найден и не может быть создан.");
-        } catch (IOException ex) {
-            Logger.getLogger(settings.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        
         
     }//GEN-LAST:event_jButton1ActionPerformed
 

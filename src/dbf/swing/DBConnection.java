@@ -58,19 +58,15 @@ public class DBConnection {
     
     
     
-    boolean init() throws FileNotFoundException, IOException{     //Возвращает true если все норм 
+    boolean init(){     //Возвращает true если все норм 
         boolean returnStatus = false;
-        settings appS = new settings();
-        File settingsFile = new File(settings.SETTINGS_FILE_NAME);
-        FileInputStream fis = new FileInputStream(settingsFile);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            try {
-                appS = (settings)ois.readObject();                //Прочитали из файла
-            }catch (ClassNotFoundException ex) {
-                Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        appSettings currentSettings = new appSettings();
+        
         try{
-            con = DriverManager.getConnection("jdbc:mysql://"+appS.getdBUrl()+":3306/"+appS.getdBTableName(), appS.getdBUser(), appS.getdBPassword());
+            con = DriverManager.getConnection("jdbc:mysql://"+currentSettings.fields.getdBUrl()+":3306/"
+                    +currentSettings.fields.getdBTableName(),
+                    currentSettings.fields.getdBUser(),
+                    currentSettings.fields.getdBPassword());
             stmt = con.createStatement();
             updateStmt = con.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
             System.out.println("Database connection initialization OK!"); 
