@@ -10,13 +10,30 @@ package dbf.swing;
  * @author spidchenko.d
  */
 public class SettingsJDialog extends javax.swing.JDialog {
-
+appSettings currentSettings;
     /**
      * Creates new form SettingsJDialog
      */
     public SettingsJDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        currentSettings = new appSettings();
+        //Инициализация полей из сохраненного файла
+        jTextField1.setText(currentSettings.fields.getdBUrl());
+        jTextField2.setText(currentSettings.fields.getdBTableName());
+        jTextField3.setText(currentSettings.fields.getdBUser());
+        jPasswordField1.setText(currentSettings.fields.getdBPassword());
+        //Поиск в списке текста названия кодировки и выделение этого элемента
+        for(int i =0; i < jComboBox1.getItemCount(); i++ ){
+            if(jComboBox1.getItemAt(i).equalsIgnoreCase(currentSettings.fields.getDbfEncoding()))
+                jComboBox1.setSelectedIndex(i);
+        } 
+        jTextField4.setText(currentSettings.fields.getDbfCorrectSum());
+        jTextField5.setText(currentSettings.fields.getDbfBankAccountNumber());
+        jTextField6.setText(currentSettings.fields.getDbfColumnSumName());
+        jTextField7.setText(currentSettings.fields.getDbfColumnDescriptionName());
+        jTextField8.setText(currentSettings.fields.getDbfColumnBankAccountName());
+        
     }
 
     /**
@@ -150,34 +167,25 @@ public class SettingsJDialog extends javax.swing.JDialog {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addComponent(jTextField4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel5))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addComponent(jComboBox1, 0, 1, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel10)
-                        .addGap(178, 178, 178))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                    .addComponent(jTextField8)
-                                    .addComponent(jTextField7)
-                                    .addComponent(jTextField6)
-                                    .addComponent(jTextField5))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(jLabel6)
-                                            .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.TRAILING))
-                                        .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.TRAILING))
-                                    .addComponent(jLabel9, javax.swing.GroupLayout.Alignment.TRAILING)))
-                            .addComponent(jCheckBox1))
-                        .addGap(47, 47, 47)))
-                .addContainerGap())
+                    .addComponent(jTextField8)
+                    .addComponent(jTextField7)
+                    .addComponent(jTextField6)
+                    .addComponent(jTextField5)
+                    .addComponent(jTextField4)
+                    .addComponent(jComboBox1, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel10)
+                    .addComponent(jLabel5)
+                    .addComponent(jLabel6)
+                    .addComponent(jLabel7)
+                    .addComponent(jLabel8)
+                    .addComponent(jLabel9))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(10, 10, 10)
+                .addComponent(jCheckBox1)
+                .addGap(123, 123, 123))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -241,50 +249,63 @@ public class SettingsJDialog extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        //Сохраняем в файл заполненные поля
+        currentSettings.fields.setdBUrl(jTextField1.getText());
+        currentSettings.fields.setdBTableName(jTextField2.getText());
+        currentSettings.fields.setdBUser(jTextField3.getText());
+        currentSettings.fields.setdBPassword(new String(jPasswordField1.getPassword()));
+        currentSettings.fields.setDbfEncoding(jComboBox1.getItemAt(jComboBox1.getSelectedIndex()));
+        currentSettings.fields.setDbfCorrectSum(jTextField4.getText());
+        currentSettings.fields.setDbfBankAccountNumber(jTextField5.getText());
+        currentSettings.fields.setDbfColumnSumName(jTextField6.getText());
+        currentSettings.fields.setDbfColumnDescriptionName(jTextField7.getText());    
+        currentSettings.fields.setDbfColumnBankAccountName(jTextField7.getText());
+        currentSettings.saveAndReload();
+        //--      
         setVisible(false);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(SettingsJDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(SettingsJDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(SettingsJDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(SettingsJDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the dialog */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                SettingsJDialog dialog = new SettingsJDialog(new javax.swing.JFrame(), true);
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
-            }
-        });
-    }
+//    public static void main(String args[]) {
+//        /* Set the Nimbus look and feel */
+//        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+//        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+//         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+//         */
+//        try {
+//            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+//                if ("Nimbus".equals(info.getName())) {
+//                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+//                    break;
+//                }
+//            }
+//        } catch (ClassNotFoundException ex) {
+//            java.util.logging.Logger.getLogger(SettingsJDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (InstantiationException ex) {
+//            java.util.logging.Logger.getLogger(SettingsJDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (IllegalAccessException ex) {
+//            java.util.logging.Logger.getLogger(SettingsJDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+//            java.util.logging.Logger.getLogger(SettingsJDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        }
+//        //</editor-fold>
+//
+//        /* Create and display the dialog */
+//        java.awt.EventQueue.invokeLater(new Runnable() {
+//            public void run() {
+//                SettingsJDialog dialog = new SettingsJDialog(new javax.swing.JFrame(), true);
+//                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
+//                    @Override
+//                    public void windowClosing(java.awt.event.WindowEvent e) {
+//                        System.exit(0);
+//                    }
+//                });
+//                dialog.setVisible(true);
+//            }
+//        });
+//    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;

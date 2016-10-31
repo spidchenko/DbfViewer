@@ -20,6 +20,7 @@ import java.io.*;
  * Сделать объект настроек и хранить настройки в файле!
  * Сделать проверку суммы платежа, счет контрагента и дебеткредит?
  * Сделать цикл оплат в отдельном потоке!
+ * Сделать проверку введенных настроек!
  * Может нумерацию сделать добавив столбец и переместив его в начало?
  * Ширину столбца по макс. длине содержимого - сортировка и ленгтх первого?
  * Выбрасывать эксэпшн при инвалидной структуре столбцов - пустое название и длина?
@@ -188,10 +189,10 @@ public class MainJFrame extends javax.swing.JFrame {
     /**
      * Creates new form MainJFrame
      */
-    
+
     public MainJFrame() {
         initComponents();
-        
+        currentSettings = new appSettings();
         //currentFile = new DbfFile("E:\\test.dbf");      //33 18f
         //currentFile = new DbfFile("E:\\bi89096.dbf"); //33 27f
         //currentFile = new DbfFile("E:\\0302.dbf");    //34 31f
@@ -221,14 +222,9 @@ public class MainJFrame extends javax.swing.JFrame {
 
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
-        jComboBox1 = new javax.swing.JComboBox<>();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jComboBox2 = new javax.swing.JComboBox<>();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jProgressBar1 = new javax.swing.JProgressBar();
-        jButton1 = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -249,17 +245,7 @@ public class MainJFrame extends javax.swing.JFrame {
         jTable1.setToolTipText("");
         jScrollPane1.setViewportView(jTable1);
 
-        jLabel2.setText("Выберите название столбца с суммой платежа:");
-
-        jLabel3.setText("Выберите название столбца с описанием платежа: ");
-
-        jComboBox2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBox2ActionPerformed(evt);
-            }
-        });
-
-        jButton2.setText("Выбрать");
+        jButton2.setText("Убрать лишние столбцы");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
@@ -270,13 +256,6 @@ public class MainJFrame extends javax.swing.JFrame {
         jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton3ActionPerformed(evt);
-            }
-        });
-
-        jButton1.setText("jButton1");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
             }
         });
 
@@ -345,38 +324,21 @@ public class MainJFrame extends javax.swing.JFrame {
                     .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1076, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton3)
-                        .addGap(53, 53, 53)
-                        .addComponent(jButton1)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel2)
-                        .addComponent(jLabel3)
-                        .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jButton2)
-                        .addComponent(jButton3)
-                        .addComponent(jButton1)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 317, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 364, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton2)
+                    .addComponent(jButton3))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -393,7 +355,8 @@ public class MainJFrame extends javax.swing.JFrame {
         int ret = fileChooser.showOpenDialog(null);
         if (ret == JFileChooser.APPROVE_OPTION) {
             java.io.File file = fileChooser.getSelectedFile();
-            currentFile = new DbfFile(file.toString());
+            //currentFile = new DbfFile(file.toString(), new appSettings().fields.getDbfEncoding());
+            currentFile = new DbfFile(file.toString(), currentSettings.fields.getDbfEncoding());
             jTable1.clearSelection();
             jTable1.setModel(new javax.swing.table.DefaultTableModel(
                 currentFile.getTableDataToShow(),
@@ -409,8 +372,8 @@ public class MainJFrame extends javax.swing.JFrame {
             //jTextField1.setText(Arrays.toString(currentFile.getTableTitles()).substring(1,Arrays.toString(currentFile.getTableTitles()).length()-1));
             
             //Здесь работает
-            jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(currentFile.getTableTitles()));
-            jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(currentFile.getTableTitles()));
+            //jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(currentFile.getTableTitles()));
+            //jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(currentFile.getTableTitles()));
             
             jScrollPane1.setToolTipText(""); //Очистили текст подсказки
             //currentFile.printFileInfo();
@@ -423,16 +386,12 @@ public class MainJFrame extends javax.swing.JFrame {
         System.exit(0); //Освободить еще какие-нибудь ресурсы?
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
-    private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox2ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jComboBox2ActionPerformed
-
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         
         String[] columsToShow = new String [3];
         columsToShow[0] = "№";
-        columsToShow[1] = jComboBox1.getSelectedItem().toString();
-        columsToShow[2] = jComboBox2.getSelectedItem().toString();
+        columsToShow[1] = currentSettings.fields.getDbfColumnSumName();
+        columsToShow[2] = currentSettings.fields.getDbfColumnDescriptionName();
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
                 currentFile.getTableDataToShow(columsToShow),
                 currentFile.getTableTitles(columsToShow)
@@ -524,28 +483,6 @@ public class MainJFrame extends javax.swing.JFrame {
         
     }//GEN-LAST:event_jMenuItem5ActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        currentSettings = new appSettings();
-        System.out.println(currentSettings.fields.getdBUrl());
-        //appS.setdBUrl("321");
-        
-        currentSettings.fields.setdBUrl("localhost");
-        currentSettings.fields.setdBTableName("khersontes_db");
-        currentSettings.fields.setdBUser("root");
-        currentSettings.fields.setdBPassword("root");
-        currentSettings.fields.setDbfEncoding("windows-1251");
-        currentSettings.fields.setDbfCorrectSum("111.00");
-        currentSettings.fields.setDbfBankAccountNumber("35229201089096");
-        currentSettings.fields.setDbfColumnSumName("FIELD5");
-        currentSettings.fields.setDbfColumnDescriptionName("FIELD9");
-        currentSettings.fields.setDbfColumnBankAccountName("FIELD?");
-        
-        currentSettings.saveAndReload();
-
-        
-        
-    }//GEN-LAST:event_jButton1ActionPerformed
-
     /**
      * @param args the command line arguments
      */
@@ -583,13 +520,8 @@ public class MainJFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    javax.swing.JButton jButton1;
     javax.swing.JButton jButton2;
     javax.swing.JButton jButton3;
-    javax.swing.JComboBox<String> jComboBox1;
-    javax.swing.JComboBox<String> jComboBox2;
-    javax.swing.JLabel jLabel2;
-    javax.swing.JLabel jLabel3;
     javax.swing.JMenu jMenu1;
     javax.swing.JMenu jMenu2;
     javax.swing.JMenu jMenu3;

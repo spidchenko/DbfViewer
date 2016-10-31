@@ -69,7 +69,7 @@ class DbfFile {
     static final int FIELD_DESCRIPTION_LENGTH = 32;  //Длина описания столбца - 32 байта
     static final int CURRENT_FIELD_NAME = 9;    //0-9 байты
     static final int CURRENT_FIELD_LENGTH = 16; //16й байт с длиной текущего столбца
-    static final Charset FILE_CHARSET = Charset.forName("cp866");//Кодировка
+    static Charset fileCharset = null;//Charset.forName(new appSettings().fields.getDbfEncoding());//Charset.forName("cp866");//Кодировка
     private int fieldsDescribeHeaderLength = 0;  //Длина заголовка с описанием столбцов (поиск 0x0D байта, не делать так, может быть в описании колонок!)
     private int headerLength = 0;                //Полная длина заголовка в байтах (из 8-9 байта)
     private int numOfFields = 0;                 //Количество столбцов таблицы
@@ -81,8 +81,10 @@ class DbfFile {
     private Object[][] tableData;               //Данные для отображения в jTable
     
         
-    public DbfFile(String filePathToOpen){
+    public DbfFile(String filePathToOpen, String charset){
         filePath = filePathToOpen;
+        fileCharset = Charset.forName(charset);
+        
         //--
         FileInputStream inputStream = null;
         byte[] byteBufferArray = new byte[1024];   //Байтовый буфер для чтения. Самая длинная запись которую я видел - 505 байт, пусть будет в 2 раза больше
@@ -155,8 +157,8 @@ class DbfFile {
                 inputStream.read(byteBufferArray, 0, oneRecordLength);
                 //Декодировали массив byteBufferArray, обернутый в байтбуффер в UTF-16 
                 //Имеем на выходе строку UTF-16 с полями из DBF файла
-            //    currentLine = FILE_CHARSET.decode(ByteBuffer.wrap(byteBufferArray,0, oneRecordLength)).toString();    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                currentLine = Charset.forName("windows-1251").decode(ByteBuffer.wrap(byteBufferArray,0, oneRecordLength)).toString(); 
+                currentLine = fileCharset.decode(ByteBuffer.wrap(byteBufferArray,0, oneRecordLength)).toString();
+            //    currentLine = Charset.forName("windows-1251").decode(ByteBuffer.wrap(byteBufferArray,0, oneRecordLength)).toString(); 
                 for(int j =0; j < numOfFields; j++){
                     tableData[i][j] = currentLine.substring(fieldArray[j].getOffset(),
                     fieldArray[j].getOffset() + fieldArray[j].getSize()).trim();
