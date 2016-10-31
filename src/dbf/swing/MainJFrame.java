@@ -17,11 +17,10 @@ import java.io.*;
 
 /**
  * СДЕЛАТЬ ПРОВЕРКУ НА СИГНАТУРУ ДБФ ФАЙЛА!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!111111111111111111
- * Сделать объект настроек и хранить настройки в файле!
- * Сделать проверку суммы платежа, счет контрагента и дебеткредит?
+ * Сохранять логи оплаченых!
+ * Сделать проверку счета контрагента и дебеткредит?
  * Сделать цикл оплат в отдельном потоке!
  * Сделать проверку введенных настроек!
- * Может нумерацию сделать добавив столбец и переместив его в начало?
  * Ширину столбца по макс. длине содержимого - сортировка и ленгтх первого?
  * Выбрасывать эксэпшн при инвалидной структуре столбцов - пустое название и длина?
  * @author spidchenko.d
@@ -246,6 +245,7 @@ public class MainJFrame extends javax.swing.JFrame {
         jScrollPane1.setViewportView(jTable1);
 
         jButton2.setText("Убрать лишние столбцы");
+        jButton2.setEnabled(false);
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
@@ -253,6 +253,7 @@ public class MainJFrame extends javax.swing.JFrame {
         });
 
         jButton3.setText("Оплатить");
+        jButton3.setEnabled(false);
         jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton3ActionPerformed(evt);
@@ -376,6 +377,8 @@ public class MainJFrame extends javax.swing.JFrame {
             //jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(currentFile.getTableTitles()));
             
             jScrollPane1.setToolTipText(""); //Очистили текст подсказки
+            jButton2.setEnabled(true);       //Активировали кнопки
+            jButton3.setEnabled(true);
             //currentFile.printFileInfo();
             //currentFile.printRecords();
 
@@ -387,23 +390,27 @@ public class MainJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        
-        String[] columsToShow = new String [3];
+        currentSettings = new appSettings();    //Переинициализация настроек перед использованием
+        String[] columsToShow = new String [4];
         columsToShow[0] = "№";
         columsToShow[1] = currentSettings.fields.getDbfColumnSumName();
-        columsToShow[2] = currentSettings.fields.getDbfColumnDescriptionName();
+        columsToShow[2] = currentSettings.fields.getDbfColumnBankAccountName();
+        columsToShow[3] = currentSettings.fields.getDbfColumnDescriptionName();
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
                 currentFile.getTableDataToShow(columsToShow),
                 currentFile.getTableTitles(columsToShow)
             ));
         
         jTable1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);  //Никакого ресайза!
-        jTable1.getColumnModel().getColumn(0).setMinWidth(50);
-        jTable1.getColumnModel().getColumn(0).setMaxWidth(50);
+        jTable1.getColumnModel().getColumn(0).setMinWidth(40);
+        jTable1.getColumnModel().getColumn(0).setMaxWidth(40);
         
         jTable1.getColumnModel().getColumn(1).setMinWidth(60);
         jTable1.getColumnModel().getColumn(1).setMaxWidth(60);
-        jTable1.getColumnModel().getColumn(2).setMinWidth(1200);
+        jTable1.getColumnModel().getColumn(2).setMinWidth(110);
+        jTable1.getColumnModel().getColumn(2).setMaxWidth(110);
+        
+        jTable1.getColumnModel().getColumn(3).setMinWidth(1200);
         //String [] paymentsDescription = currentFile.getDetalsOfPayment(jComboBox2.getSelectedItem().toString());
         //for(int i = 0; i < paymentsDescription.length; i++)
         //    System.out.println(paymentsDescription[i]);

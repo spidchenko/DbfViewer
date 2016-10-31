@@ -13,6 +13,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -216,7 +217,9 @@ class DbfFile {
                     tableTitles[i] = "№";
                 }
                 else{
-                    System.out.println("Column "+columsToShow[i].toUpperCase()+" not found in "+fieldArrayInString);     //NEED THROW SOMETHNIG HERE!!!!!!!
+                    //System.out.println("Column "+columsToShow[i].toUpperCase()+" not found in "+fieldArrayInString);     //NEED THROW SOMETHNIG HERE!!!!!!!
+                    //Выбрасываем ошибку!
+                    JOptionPane.showMessageDialog(null,"Столбец \""+columsToShow[i].toUpperCase()+"\" не найден в списке столбцов этого файла: \n"+fieldArrayInString+"\nПроверьте настройки приложения.", "Ошибка!", JOptionPane.ERROR_MESSAGE);
                 }
         }
         //System.out.print(Arrays.toString(tableTitles));

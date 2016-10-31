@@ -155,6 +155,7 @@
     <Component class="javax.swing.JButton" name="jButton2">
       <Properties>
         <Property name="text" type="java.lang.String" value="&#x423;&#x431;&#x440;&#x430;&#x442;&#x44c; &#x43b;&#x438;&#x448;&#x43d;&#x438;&#x435; &#x441;&#x442;&#x43e;&#x43b;&#x431;&#x446;&#x44b;"/>
+        <Property name="enabled" type="boolean" value="false"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton2ActionPerformed"/>
@@ -163,6 +164,7 @@
     <Component class="javax.swing.JButton" name="jButton3">
       <Properties>
         <Property name="text" type="java.lang.String" value="&#x41e;&#x43f;&#x43b;&#x430;&#x442;&#x438;&#x442;&#x44c;"/>
+        <Property name="enabled" type="boolean" value="false"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton3ActionPerformed"/>

@@ -67,7 +67,8 @@ public class DBConnection {
             isInitDone = true;
             returnStatus = true;
         } catch (SQLException sqlEx) {
-            sqlEx.printStackTrace();
+            //sqlEx.printStackTrace();
+            //Героически молчим, красный текст в окне и так появися, а трэйс не поможет понять ошибку
         }
         //Подумать, нужно ли здесь файнали, это же инициализация
 //        } finally {

@@ -22,7 +22,7 @@ public class CheckBillJDialog extends javax.swing.JDialog {
     public CheckBillJDialog(java.awt.Frame parent, boolean modal) throws IOException {
         super(parent, modal);
         initComponents();
-        /*if (dBConn == null)*/ dBConn = new DBConnection();
+        dBConn = new DBConnection();
         if (dBConn.init()){
             jLabel2.setForeground(new Color(0,200,0));
             jLabel2.setText("OK!");
