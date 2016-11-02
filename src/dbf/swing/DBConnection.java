@@ -7,6 +7,7 @@ package dbf.swing;
 
 import java.io.IOException;
 import java.sql.*;
+import javax.swing.JOptionPane;
 /**
  *
  * @author spidchenko.d
@@ -163,7 +164,7 @@ public class DBConnection {
         return rowUpdatedCounter;
     }
     
-    boolean writePayment(String billToFind){    //Принимает строку из 13ти цифр кода оплаты
+    boolean writePayment(String billToFind) throws NullPointerException{    //Принимает строку из 13ти цифр кода оплаты
         boolean writeStatus = false;
         int paymentId = 0;
         if (billToFind.matches("\\d{13}")){     //Проверка аргумента перед SQL запросом
@@ -185,8 +186,12 @@ public class DBConnection {
             } catch (SQLException sqlEx) {
                 sqlEx.printStackTrace();
             }
+            
+                    
         } else{
-            System.err.println("Bill not 13 digits!");
+            //System.err.println("Bill not 13 digits!");
+            //Проверим аргумент функции еще раз перед запросом в базу
+            JOptionPane.showMessageDialog(null, "Bill not 13 digits!", "Error", JOptionPane.ERROR_MESSAGE);
         }
         return writeStatus;
     }

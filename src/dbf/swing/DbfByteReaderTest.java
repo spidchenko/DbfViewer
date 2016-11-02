@@ -19,6 +19,11 @@ import javax.swing.JOptionPane;
  *
  * @author spidchenko.d
  */
+class BadColumnNameException extends Exception {
+    BadColumnNameException(String details){
+        super(details);
+    }
+}
 
 class Field{
     private String name;    //Название столбца
@@ -201,7 +206,7 @@ class DbfFile {
         return tableTitles;
     }
  
-     String[] getTableTitles(String[] columsToShow){        //Возвращает массив с названиями столбцов
+     String[] getTableTitles(String[] columsToShow) throws BadColumnNameException{        //Возвращает массив с названиями столбцов
         String onlyNames[] = new String[fieldArray.length];
         for(int i = 0; i < fieldArray.length; i++){
             onlyNames[i] = fieldArray[i].getName();
@@ -219,7 +224,8 @@ class DbfFile {
                 else{
                     //System.out.println("Column "+columsToShow[i].toUpperCase()+" not found in "+fieldArrayInString);     //NEED THROW SOMETHNIG HERE!!!!!!!
                     //Выбрасываем ошибку!
-                    JOptionPane.showMessageDialog(null,"Столбец \""+columsToShow[i].toUpperCase()+"\" не найден в списке столбцов этого файла: \n"+fieldArrayInString+"\nПроверьте настройки приложения.", "Ошибка!", JOptionPane.ERROR_MESSAGE);
+                    throw new BadColumnNameException(columsToShow[i].toUpperCase());
+                    //JOptionPane.showMessageDialog(null,"Столбец \""+columsToShow[i].toUpperCase()+"\" не найден в списке столбцов этого файла: \n"+fieldArrayInString+"\nПроверьте настройки приложения.", "Ошибка!", JOptionPane.ERROR_MESSAGE);
                 }
         }
         //System.out.print(Arrays.toString(tableTitles));
@@ -233,7 +239,7 @@ class DbfFile {
         return tableData;
     }
     
-    Object[][] getTableDataToShow(String[] columsToShow){
+    Object[][] getTableDataToShow(String[] columsToShow) throws BadColumnNameException{
         String [] titles = getTableTitles(columsToShow);
         Object [][] newTableData = new String [numOfRecords][titles.length];
         int currentColumnOffset = 0;
@@ -243,14 +249,16 @@ class DbfFile {
         //копируем весь столбец(по i вниз) из tableData в newTableData
         for(int k = 0; k < titles.length; k++){
             for (int j = 0; j < numOfFields; j++){
-                if(fieldArray[j].getName().equalsIgnoreCase(titles[k]))
+                if(fieldArray[j].getName().equalsIgnoreCase(titles[k])){
                     for(int i = 0; i < numOfRecords; i++){
                         newTableData[i][k] = tableData[i][j];
-                    }           //Костыль для нумерации строчек
-                else if(titles[k].equals("№"))
+                    }           
+                }//Костыль для нумерации строчек
+                else if(titles[k].equals("№")){
                     for(int i = 0; i < numOfRecords; i++){
                         newTableData[i][k] = Integer.toString(i+1);
                     }
+                }
             }            
         }
 
@@ -301,4 +309,6 @@ class DbfFile {
         }
         return detalsOfPayment;
     }
+
+    
 }

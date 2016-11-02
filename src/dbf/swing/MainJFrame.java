@@ -14,14 +14,14 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.io.*;
+import javax.swing.JOptionPane;
 
 /**
  * СДЕЛАТЬ ПРОВЕРКУ НА СИГНАТУРУ ДБФ ФАЙЛА!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!111111111111111111
- * Сохранять логи оплаченых!
- * Сделать проверку счета контрагента и дебеткредит?
- * Сделать цикл оплат в отдельном потоке!
- * Сделать проверку введенных настроек!
- * Ширину столбца по макс. длине содержимого - сортировка и ленгтх первого?
+ * Сохранять логи оплаченых! по имени выписки+ _good.txt, _bad.txt, _duplicate.txt
+ * Сделать проверку счета контрагента и дебеткредит                             отобрать может только с этим счетом? нужно смотреть боевой файл-выписку
+ * Сделать цикл оплат в отдельном потоке!                                       сложно, отложить
+ * Ширину столбца по макс длине содержимого - сортировка и ленгтх первого?      так ли необходимо? вьювер есть, зачем еще красивей?
  * Выбрасывать эксэпшн при инвалидной структуре столбцов - пустое название и длина?
  * @author spidchenko.d
  */
@@ -182,6 +182,8 @@ public class MainJFrame extends javax.swing.JFrame {
     int badPaymentsNum = 0;
     int paidPaymentsNum = 0;
     javax.swing.table.DefaultTableModel tableModel;
+    String[] columsToShow;
+    
     appSettings currentSettings;
     
   
@@ -224,6 +226,9 @@ public class MainJFrame extends javax.swing.JFrame {
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jProgressBar1 = new javax.swing.JProgressBar();
+        jTextField1 = new javax.swing.JTextField();
+        jButton1 = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -241,7 +246,17 @@ public class MainJFrame extends javax.swing.JFrame {
         jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
         jScrollPane1.setToolTipText("Для начала работы откройте .dbf файл");
 
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+
+            }
+        ));
         jTable1.setToolTipText("");
+        jTable1.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
+        jTable1.getTableHeader().setReorderingAllowed(false);
         jScrollPane1.setViewportView(jTable1);
 
         jButton2.setText("Убрать лишние столбцы");
@@ -259,6 +274,24 @@ public class MainJFrame extends javax.swing.JFrame {
                 jButton3ActionPerformed(evt);
             }
         });
+
+        jTextField1.setEnabled(false);
+        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jButton1.setText("Найти");
+        jButton1.setEnabled(false);
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setText("Поиск по описанию платежа:");
+        jLabel1.setEnabled(false);
 
         jMenu1.setText("Файл");
 
@@ -328,7 +361,12 @@ public class MainJFrame extends javax.swing.JFrame {
                         .addComponent(jButton2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton3)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton1)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -339,7 +377,10 @@ public class MainJFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton2)
-                    .addComponent(jButton3))
+                    .addComponent(jButton3)
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton1)
+                    .addComponent(jLabel1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -356,19 +397,40 @@ public class MainJFrame extends javax.swing.JFrame {
         int ret = fileChooser.showOpenDialog(null);
         if (ret == JFileChooser.APPROVE_OPTION) {
             java.io.File file = fileChooser.getSelectedFile();
-            //currentFile = new DbfFile(file.toString(), new appSettings().fields.getDbfEncoding());
             currentFile = new DbfFile(file.toString(), currentSettings.fields.getDbfEncoding());
-            jTable1.clearSelection();
+            
+            Object[][] tableData = currentFile.getTableDataToShow();
+            String [] tableTitles = currentFile.getTableTitles();
+            
+            //Вывод информации в jTable
             jTable1.setModel(new javax.swing.table.DefaultTableModel(
-                currentFile.getTableDataToShow(),
-                currentFile.getTableTitles()
+                tableData,
+                tableTitles
             ));
-            jTable1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);  //Никакого ресайза!
-            if (jTable1.getColumnModel().getColumnCount() > 0) {
-                for(int i = 0; i< currentFile.getNumOfFields(); i++){
-                    jTable1.getColumnModel().getColumn(i).setMinWidth(currentFile.getFieldArray()[i].getSize()*8);
+            
+            //Оптимизация ширины столбцов для показа
+            int currentFieldMaxLength = 0;
+            for(int j = 0; j < currentFile.getNumOfFields(); j++){
+                currentFieldMaxLength = 0;
+                for(int i = 0; i < currentFile.getNumOfRecords(); i++){
+                    if(tableData[i][j].toString().length() > currentFieldMaxLength){
+                        currentFieldMaxLength = tableData[i][j].toString().length();
+                    }
                 }
+                //System.out.printf("%3d | %5d\n", j, currentFieldMaxLength);
+                jTable1.getColumnModel().getColumn(j).setMinWidth(currentFieldMaxLength*9);
             }
+            jTable1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);  //Никакого авторесайза столбцов по ширине окна!            
+            
+            //Поможем сборщику?
+            tableData = null;
+            tableTitles = null;
+
+//            if (jTable1.getColumnModel().getColumnCount() > 0) {
+//                for(int i = 0; i< currentFile.getNumOfFields(); i++){
+//                    jTable1.getColumnModel().getColumn(i).setMinWidth(currentFile.getFieldArray()[i].getSize()*8);
+//                }
+//            }
             //PZDC!
             //jTextField1.setText(Arrays.toString(currentFile.getTableTitles()).substring(1,Arrays.toString(currentFile.getTableTitles()).length()-1));
             
@@ -377,8 +439,9 @@ public class MainJFrame extends javax.swing.JFrame {
             //jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(currentFile.getTableTitles()));
             
             jScrollPane1.setToolTipText(""); //Очистили текст подсказки
-            jButton2.setEnabled(true);       //Активировали кнопки
-            jButton3.setEnabled(true);
+            jButton2.setEnabled(true);       //Активировали кнопку "убрать.." 
+            
+            //jButton3.setEnabled(true);
             //currentFile.printFileInfo();
             //currentFile.printRecords();
 
@@ -390,33 +453,41 @@ public class MainJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        currentSettings = new appSettings();    //Переинициализация настроек перед использованием
-        String[] columsToShow = new String [4];
-        columsToShow[0] = "№";
-        columsToShow[1] = currentSettings.fields.getDbfColumnSumName();
-        columsToShow[2] = currentSettings.fields.getDbfColumnBankAccountName();
-        columsToShow[3] = currentSettings.fields.getDbfColumnDescriptionName();
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-                currentFile.getTableDataToShow(columsToShow),
-                currentFile.getTableTitles(columsToShow)
-            ));
+        //currentSettings = new appSettings();    //Переинициализация настроек перед использованием не нужна, теперь мы изменям объект настроек в отдельном окне
+        try{
+            String[] columsToShow = new String [4];
+            columsToShow[0] = "№";
+            columsToShow[1] = currentSettings.fields.getDbfColumnSumName();
+            columsToShow[2] = currentSettings.fields.getDbfColumnBankAccountName();
+            columsToShow[3] = currentSettings.fields.getDbfColumnDescriptionName();
+            jTable1.setModel(new javax.swing.table.DefaultTableModel(
+                    currentFile.getTableDataToShow(columsToShow),
+                    currentFile.getTableTitles(columsToShow)
+                ));
+
+            jTable1.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);  //Ресайз последнего столбца таблицы
+
+            //Подгоним руками ширину столбцов
+            jTable1.getColumnModel().getColumn(0).setMinWidth(40);  //№
+            jTable1.getColumnModel().getColumn(0).setMaxWidth(40);
+            jTable1.getColumnModel().getColumn(1).setMinWidth(60);  //Сумма
+            jTable1.getColumnModel().getColumn(1).setMaxWidth(60);
+            jTable1.getColumnModel().getColumn(2).setMinWidth(110); //Номер счета
+            jTable1.getColumnModel().getColumn(2).setMaxWidth(110);
+            jTable1.getColumnModel().getColumn(3).setMinWidth(1200);//Описание платежа. MaxWidth определяется ресайзом окна
+            
+            jButton3.setEnabled(true);      //Активировали кнопку "оплатить"
+            jLabel1.setEnabled(true);       //Активировали блок поиска
+            jTextField1.setEnabled(true);   //~~
+            jButton1.setEnabled(true);      //~~
+            
+            
+        }catch(BadColumnNameException badExc){
+            JOptionPane.showMessageDialog(null, "Не найден столбец \""+badExc.getMessage()+"\"\nПроверьте настройки.", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            //System.out.println("Bad column Name Exc :"+badExc.getMessage());
+        }
         
-        jTable1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);  //Никакого ресайза!
-        jTable1.getColumnModel().getColumn(0).setMinWidth(40);
-        jTable1.getColumnModel().getColumn(0).setMaxWidth(40);
-        
-        jTable1.getColumnModel().getColumn(1).setMinWidth(60);
-        jTable1.getColumnModel().getColumn(1).setMaxWidth(60);
-        jTable1.getColumnModel().getColumn(2).setMinWidth(110);
-        jTable1.getColumnModel().getColumn(2).setMaxWidth(110);
-        
-        jTable1.getColumnModel().getColumn(3).setMinWidth(1200);
-        //String [] paymentsDescription = currentFile.getDetalsOfPayment(jComboBox2.getSelectedItem().toString());
-        //for(int i = 0; i < paymentsDescription.length; i++)
-        //    System.out.println(paymentsDescription[i]);
-        
-        //System.out.println(Arrays.toString(columsToShow));
-        //System.out.println(numColumsToShow);      
+     
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
@@ -425,13 +496,11 @@ public class MainJFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
-                SettingsJDialog dialog = new SettingsJDialog(new javax.swing.JFrame(), true);
+                SettingsJDialog dialog = new SettingsJDialog(new javax.swing.JFrame(), true, currentSettings);  //Передаем объект настроек для изменения
                 dialog.setVisible(true);
     }//GEN-LAST:event_jMenuItem4ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        //jTable1.addColumn(new javax.swing.table.TableColumn(0, 200));
-        //jTable1.addRowSelectionInterval(1, 10);
         jProgressBar1.setMaximum(currentFile.getNumOfRecords());
         dBConn = new DBConnection();
         dBConn.init();
@@ -444,39 +513,38 @@ public class MainJFrame extends javax.swing.JFrame {
         paidPaymentsNum = 0;
         
         //Запустим новый поток с циклом выставления оплат в базу
+        //так приложение не будет зависать на время работы с базой 
         Thread doPayments = new Thread(new Runnable(){
             public void run(){
-                for (int i = 0; i < paymentsDescription.length; i++){
-            
-                    Matcher matcher = codePattern.matcher(paymentsDescription[i]);
-                    if ((matcher.find())&&(paymentsSum[i].equals(currentSettings.fields.getDbfCorrectSum()))){                                                   //Настройки
-                        if (dBConn.writePayment(matcher.group())){
-                            goodPaymentsNum++;
-                        }else{
-                            paidPaymentsNum++;
+                try{
+                    for (int i = 0; i < paymentsDescription.length; i++){
+
+                        Matcher matcher = codePattern.matcher(paymentsDescription[i]);
+                        if ((matcher.find())&&(paymentsSum[i].equals(currentSettings.fields.getDbfCorrectSum()))){                  //Настройки
+                            if (dBConn.writePayment(matcher.group())){
+                                goodPaymentsNum++;
+                            }else{
+                                paidPaymentsNum++;
+                            }
+                        } else {
+                            System.out.println("Ошибка в номере платежа или сумме: "+paymentsSum[i]+" грн. Описание платежа \""+paymentsDescription[i]+"\"");
+                            badPaymentsNum++;
                         }
-                    } else {
-                        System.out.println("Ошибка в номере платежа или сумме: "+paymentsSum[i]+" грн. Описание платежа \""+paymentsDescription[i]+"\"");
-                        badPaymentsNum++;
+
+                        jProgressBar1.setValue(i);
                     }
-//                    try {
-//                        Thread.sleep(100);
-//                    } catch (InterruptedException ex) {
-//                        Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
-//                    }
-                    jProgressBar1.setValue(i);
+                    PaymentsDoneJDialog dialog = new PaymentsDoneJDialog(new javax.swing.JFrame(), true, goodPaymentsNum, badPaymentsNum, paidPaymentsNum);
+                    dialog.setVisible(true);
+                } catch (NullPointerException nullEx){
+                    JOptionPane.showMessageDialog(null, "Нет соединения с базой данных.\nПроверьте настройки и попробуйте еще раз", "Ошибка БД!", JOptionPane.ERROR_MESSAGE);
+                } finally{
+                    //System.out.println("Поток doPayments завершился!");                 //!!!
+                    dBConn.closeConnection();
+                    jProgressBar1.setValue(0);
                 }
-                System.out.println("Поток doPayments завершился!");
-                dBConn.closeConnection();
-                jProgressBar1.setValue(0);
-                PaymentsDoneJDialog dialog = new PaymentsDoneJDialog(new javax.swing.JFrame(), true, goodPaymentsNum, badPaymentsNum, paidPaymentsNum);
-                dialog.setVisible(true);
             }
         });
         doPayments.start();
-        //
-        
-        
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
@@ -489,6 +557,21 @@ public class MainJFrame extends javax.swing.JFrame {
         }
         
     }//GEN-LAST:event_jMenuItem5ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        String textToFind = jTextField1.getText();
+        boolean isFoundSomething = false;
+        jTable1.clearSelection();
+        for(int i = 0; i < currentFile.getNumOfRecords(); i++){
+            if (jTable1.getValueAt(i, 3).toString().contains(textToFind)){//3 - magic number
+                jTable1.addRowSelectionInterval(i, i);
+                isFoundSomething = true;
+            }
+        }
+        if (!isFoundSomething){
+            JOptionPane.showMessageDialog(null, "Совпадений не найдено", "Результат поиска", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -527,8 +610,10 @@ public class MainJFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    javax.swing.JButton jButton1;
     javax.swing.JButton jButton2;
     javax.swing.JButton jButton3;
+    javax.swing.JLabel jLabel1;
     javax.swing.JMenu jMenu1;
     javax.swing.JMenu jMenu2;
     javax.swing.JMenu jMenu3;
@@ -542,5 +627,6 @@ public class MainJFrame extends javax.swing.JFrame {
     javax.swing.JScrollPane jScrollPane1;
     javax.swing.JPopupMenu.Separator jSeparator1;
     javax.swing.JTable jTable1;
+    javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
 }
