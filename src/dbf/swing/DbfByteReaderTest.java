@@ -19,18 +19,23 @@ import javax.swing.JOptionPane;
  *
  * @author spidchenko.d
  */
-class BadColumnNameException extends Exception {
+
+class BadFileException extends Exception { }                //Возможно поврежденный файл
+
+class BadColumnNameException extends Exception {            //В файле нет такого столбца
     BadColumnNameException(String details){
         super(details);
     }
 }
-
+/**
+ * Объект Столбец таблицы
+ */
 class Field{
     private String name;    //Название столбца
     private int size;       //Ширина столбца в байтах
     private int offset;     //Смещение от начала записи в байтах
         
-    public Field(String newName, int newSize, int newOffset){
+    public Field(String newName, int newSize, int newOffset){   //Столбец
         name = newName;
         size = newSize;
         offset = newOffset;
@@ -70,25 +75,29 @@ class Field{
 //</editor-fold>
 }
 
+/**
+ * Объект Файл .DBF
+ */
 class DbfFile {
     static final int SERVICE_HEADER_LENGTH = 32;//Первые 32 байта файла - служебная информация
     static final int FIELD_DESCRIPTION_LENGTH = 32;  //Длина описания столбца - 32 байта
     static final int CURRENT_FIELD_NAME = 9;    //0-9 байты
     static final int CURRENT_FIELD_LENGTH = 16; //16й байт с длиной текущего столбца
     static Charset fileCharset = null;//Charset.forName(new appSettings().fields.getDbfEncoding());//Charset.forName("cp866");//Кодировка
-    private int fieldsDescribeHeaderLength = 0;  //Длина заголовка с описанием столбцов (поиск 0x0D байта, не делать так, может быть в описании колонок!)
     private int headerLength = 0;                //Полная длина заголовка в байтах (из 8-9 байта)
     private int numOfFields = 0;                 //Количество столбцов таблицы
     private int numOfRecords = 0;                //Количество записей в таблице
     private int oneRecordLength = 0;             //Длина одной записи в байтах
     private Field [] fieldArray;
         //------
-    private String filePath = "";//E:\\0302.dbf"; 
+    //private String filePath = "";//E:\\0302.dbf"; 
     private Object[][] tableData;               //Данные для отображения в jTable
+    private java.io.File file = null;           //Файл
     
         
-    public DbfFile(String filePathToOpen, String charset){
-        filePath = filePathToOpen;
+    public DbfFile(java.io.File fileToOpen, String charset) throws BadFileException{
+        file = fileToOpen;
+        //filePath = filePathToOpen.toString();
         fileCharset = Charset.forName(charset);
         
         //--
@@ -96,8 +105,10 @@ class DbfFile {
         byte[] byteBufferArray = new byte[1024];   //Байтовый буфер для чтения. Самая длинная запись которую я видел - 505 байт, пусть будет в 2 раза больше
                 
         try{
-            inputStream = new FileInputStream(filePath);
+            inputStream = new FileInputStream(file.toString());
             inputStream.read(byteBufferArray, 0, SERVICE_HEADER_LENGTH);
+            //Проверка сигнатуры .dbf файла
+            if(byteBufferArray[0] != 3) throw new BadFileException();
             //Делаем unsigned byte массив [4-7] байтов (количество записей, старший байт справа)
             int [] byteArray = new int[4];
             for(int i = 0; i<4; i++){
@@ -118,15 +129,11 @@ class DbfFile {
             }           
             //сдвигаем байты (старший слева) и получаем длину одной записи (16бит число)
             oneRecordLength = byteArray[0]|(byteArray[1]<<8);
-                                
-            while(inputStream.read()!=0xD){     //Поиск конца заголовка: байт 0xD
-                fieldsDescribeHeaderLength++;
-            }
         
             //Считаем количество столбцов в таблице
             numOfFields = (headerLength - SERVICE_HEADER_LENGTH - 1)/FIELD_DESCRIPTION_LENGTH;
             
-            inputStream = new FileInputStream(filePath);    //Откроем еше раз, чтобы вернуться в начало файла, как иначе хз
+            inputStream = new FileInputStream(file.toString());    //Откроем еше раз, чтобы вернуться в начало файла, как иначе хз
             inputStream.skip(SERVICE_HEADER_LENGTH);    //Пропустили служебный предзаголовок
 
         //Парсим описания столбцов таблицы (fieldArray):
@@ -154,7 +161,7 @@ class DbfFile {
         //Парсим строки таблицы (tableData):
             String currentLine = "";
             //Файловый курсор сейчас перед 0xD [0xD, 0x0]
-            inputStream = new FileInputStream(filePath);  //Откроем еше раз, чтобы вернуться в начало файла, как иначе хз
+            inputStream = new FileInputStream(file.toString());  //Откроем еше раз, чтобы вернуться в начало файла, как иначе хз
             inputStream.skip(headerLength+1);       //Пропустили весь заголовок +1 байт
                        
             tableData = new String [numOfRecords][numOfFields];
@@ -164,7 +171,6 @@ class DbfFile {
                 //Декодировали массив byteBufferArray, обернутый в байтбуффер в UTF-16 
                 //Имеем на выходе строку UTF-16 с полями из DBF файла
                 currentLine = fileCharset.decode(ByteBuffer.wrap(byteBufferArray,0, oneRecordLength)).toString();
-            //    currentLine = Charset.forName("windows-1251").decode(ByteBuffer.wrap(byteBufferArray,0, oneRecordLength)).toString(); 
                 for(int j =0; j < numOfFields; j++){
                     tableData[i][j] = currentLine.substring(fieldArray[j].getOffset(),
                     fieldArray[j].getOffset() + fieldArray[j].getSize()).trim();
@@ -188,6 +194,11 @@ class DbfFile {
     int getNumOfRecords(){
         return numOfRecords;
     }
+    
+    java.io.File getFile(){
+        return file;
+    }
+    
     int getNumOfFields(){
         return numOfFields;
     }
@@ -195,7 +206,9 @@ class DbfFile {
     Field[] getFieldArray(){
         return fieldArray;
     }
-    
+    /**
+     * Формирует массив с названиями столбцов из массива объектов fieldArray
+     */     
      String[] getTableTitles(){
         //Формируем для таблицы jTable данные
         //Извлекли из массива только названия столбцов для отображения:
@@ -205,8 +218,10 @@ class DbfFile {
         }
         return tableTitles;
     }
- 
-     String[] getTableTitles(String[] columsToShow) throws BadColumnNameException{        //Возвращает массив с названиями столбцов
+    /**
+     * Формирует массив с названиями столбцов из массива объектов fieldArray по названиям отдельных столбцов
+     */ 
+     String[] getTableTitles(String[] columsToShow) throws BadColumnNameException{        
         String onlyNames[] = new String[fieldArray.length];
         for(int i = 0; i < fieldArray.length; i++){
             onlyNames[i] = fieldArray[i].getName();
@@ -222,23 +237,26 @@ class DbfFile {
                     tableTitles[i] = "№";
                 }
                 else{
-                    //System.out.println("Column "+columsToShow[i].toUpperCase()+" not found in "+fieldArrayInString);     //NEED THROW SOMETHNIG HERE!!!!!!!
-                    //Выбрасываем ошибку!
+                    //Если столбец columsToShow[i] не найден в массиве fieldArrayInString, то выбрасываем ошибку!
                     throw new BadColumnNameException(columsToShow[i].toUpperCase());
-                    //JOptionPane.showMessageDialog(null,"Столбец \""+columsToShow[i].toUpperCase()+"\" не найден в списке столбцов этого файла: \n"+fieldArrayInString+"\nПроверьте настройки приложения.", "Ошибка!", JOptionPane.ERROR_MESSAGE);
                 }
         }
         //System.out.print(Arrays.toString(tableTitles));
         return tableTitles;
         //Есть массив названий необходимых колонок
         //поиск таких названий в fieldArray
-        //формируем массив строк и возвращаем если есть названия
+        //формируем массив строк и возвращаем если есть названия или выбрасываем исключительную ситуацию
      }
-     
-    Object[][] getTableDataToShow(){    //Возвращает массив записей для jTable
+    /**
+    * Возвращает массив записей для jTable
+    */     
+    Object[][] getTableDataToShow(){    
         return tableData;
     }
     
+    /**
+    * Возвращает массив записей для jTable по названиям отдельных столбцов
+    */        
     Object[][] getTableDataToShow(String[] columsToShow) throws BadColumnNameException{
         String [] titles = getTableTitles(columsToShow);
         Object [][] newTableData = new String [numOfRecords][titles.length];
@@ -246,14 +264,15 @@ class DbfFile {
         //Вот здесь магия выбора столбцов по названию
         //Проходим по количеству столбцов, которые нужно выбрать (k),
         //проходим по названиям столбцов (j), если нашли тот, который нужно выбрать, то
-        //копируем весь столбец(по i вниз) из tableData в newTableData
+        //копируем весь столбец (по i вниз) из tableData в newTableData
         for(int k = 0; k < titles.length; k++){
             for (int j = 0; j < numOfFields; j++){
                 if(fieldArray[j].getName().equalsIgnoreCase(titles[k])){
                     for(int i = 0; i < numOfRecords; i++){
                         newTableData[i][k] = tableData[i][j];
                     }           
-                }//Костыль для нумерации строчек
+                }
+                //Костыль для нумерации строк
                 else if(titles[k].equals("№")){
                     for(int i = 0; i < numOfRecords; i++){
                         newTableData[i][k] = Integer.toString(i+1);
@@ -261,30 +280,29 @@ class DbfFile {
                 }
             }            
         }
-
-        
-        
         return newTableData;    
-        }
-        //System.out.println(Arrays.toString(titles));
-        //!
-    
+    }
+ 
     int getOneRecordLength(){
         return oneRecordLength;
     }
 //</editor-fold>
-    
-    void printFileInfo(){   //Печать служебной информации, заголовков в консоль
+    /**
+    * Печать служебной информации, заголовков в консоль
+    */
+    void printFileInfo(){
         System.out.print("\n");
-        System.out.format("fieldsDescribeHeaderLength:%4d \nheaderLength: %4d \nnumOfFields:%3d \nnumOfRecords:%4d \noneRecordLength:%4d\n\n", fieldsDescribeHeaderLength, headerLength, numOfFields, numOfRecords, oneRecordLength);
+        System.out.format("headerLength: %4d \nnumOfFields:%3d \nnumOfRecords:%4d \noneRecordLength:%4d\n\n", headerLength, numOfFields, numOfRecords, oneRecordLength);
             
         for (Field fieldArray1 : fieldArray) {
             System.out.format("%10s | %5d | %5d \n", fieldArray1.getName(), fieldArray1.getSize(), fieldArray1.getOffset());
         }
         System.out.print("\n");        
     }
-    
-    void printRecords(){    //Печать содержимого файла в консоль
+    /**
+    * Печать содержимого файла в консоль
+    */    
+    void printRecords(){
         for(int i = 0; i < numOfRecords; i++){
             for(int j = 0; j < numOfFields; j++){
                 System.out.printf("%"+fieldArray[j].getSize()+"s",getTableDataToShow()[i][j]);
@@ -292,9 +310,14 @@ class DbfFile {
         System.out.print("\n");
         }
     }
-    
+    /**
+    * Данные для поиска кода оплаты.
+    * что если заменить использование этого метода на
+    * Object[][] getTableDataToShow(String[] columsToShow)
+    * где я вообще собрался это использовать?
+    */       
     String [] getDetalsOfPayment(String detalsOfPaymentRow){
-        String[] detalsOfPayment = new String[numOfRecords];           //Данные для поиска кода оплаты
+        String[] detalsOfPayment = new String[numOfRecords];           
         int numFieldToGet=0;
         //поиск столбца
         for(int i = 0; i < numOfFields; i++){
@@ -309,6 +332,4 @@ class DbfFile {
         }
         return detalsOfPayment;
     }
-
-    
 }

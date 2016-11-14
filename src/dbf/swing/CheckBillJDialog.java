@@ -127,7 +127,7 @@ public class CheckBillJDialog extends javax.swing.JDialog {
         //Достаточно? Переделать на что-нибудь менее требовательное к памяти, очередь?
         //возвращать сразу в список, какой-нибудь модел-вью-контроллер?
         int numUpdated;
-        try {
+        
             numUpdated = dBConn.checkAndUpdateBills(recordsHaveBillProblems);
             int i = 0;
             jTextArea1.setText("");
@@ -136,9 +136,6 @@ public class CheckBillJDialog extends javax.swing.JDialog {
                 jTextArea1.append(recordsHaveBillProblems[i++]+"\n");
             }
             dBConn.closeConnection(); // На всякий случай?
-        } catch (IOException ex) {
-            Logger.getLogger(CheckBillJDialog.class.getName()).log(Level.SEVERE, null, ex);
-        }
         
     }//GEN-LAST:event_jButton1ActionPerformed
 

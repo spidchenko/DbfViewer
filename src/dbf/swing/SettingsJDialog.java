@@ -108,7 +108,7 @@ appSettings currentSettings;
                     .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTextField3)
+                    .addComponent(jTextField3, javax.swing.GroupLayout.DEFAULT_SIZE, 236, Short.MAX_VALUE)
                     .addComponent(jPasswordField1)
                     .addComponent(jTextField1)
                     .addComponent(jTextField2))
@@ -141,11 +141,11 @@ appSettings currentSettings;
 
         jLabel6.setText("Номер нашего счета");
 
-        jLabel7.setText("Название столбца с суммой платежа");
+        jLabel7.setText("Название столбца с суммой платежа (S...)");
 
-        jLabel8.setText("Название столбца с описанием платежа");
+        jLabel8.setText("Название столбца с описанием платежа (NAZN, NAZ...)");
 
-        jLabel9.setText("Название столбца с номером счета контрагента");
+        jLabel9.setText("Название столбца с номером счета контрагента (NLSK...)");
 
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "cp866", "windows-1251" }));
 
@@ -221,8 +221,8 @@ appSettings currentSettings;
                         .addComponent(jButton1)
                         .addGap(43, 43, 43)
                         .addComponent(jButton2))
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

@@ -41,8 +41,8 @@
                       <EmptySpace min="-2" pref="43" max="-2" attributes="0"/>
                       <Component id="jButton2" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="jPanel2" alignment="2" max="32767" attributes="0"/>
                   <Component id="jPanel1" alignment="2" max="32767" attributes="0"/>
+                  <Component id="jPanel2" alignment="2" max="32767" attributes="0"/>
               </Group>
           </Group>
       </Group>
@@ -95,7 +95,7 @@
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="jTextField3" alignment="0" max="32767" attributes="0"/>
+                      <Component id="jTextField3" alignment="0" pref="236" max="32767" attributes="0"/>
                       <Component id="jPasswordField1" max="32767" attributes="0"/>
                       <Component id="jTextField1" alignment="0" max="32767" attributes="0"/>
                       <Component id="jTextField2" alignment="0" max="32767" attributes="0"/>
@@ -253,21 +253,21 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel7">
           <Properties>
-            <Property name="text" type="java.lang.String" value="&#x41d;&#x430;&#x437;&#x432;&#x430;&#x43d;&#x438;&#x435; &#x441;&#x442;&#x43e;&#x43b;&#x431;&#x446;&#x430; &#x441; &#x441;&#x443;&#x43c;&#x43c;&#x43e;&#x439; &#x43f;&#x43b;&#x430;&#x442;&#x435;&#x436;&#x430;"/>
+            <Property name="text" type="java.lang.String" value="&#x41d;&#x430;&#x437;&#x432;&#x430;&#x43d;&#x438;&#x435; &#x441;&#x442;&#x43e;&#x43b;&#x431;&#x446;&#x430; &#x441; &#x441;&#x443;&#x43c;&#x43c;&#x43e;&#x439; &#x43f;&#x43b;&#x430;&#x442;&#x435;&#x436;&#x430; (S...)"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="jTextField7">
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel8">
           <Properties>
-            <Property name="text" type="java.lang.String" value="&#x41d;&#x430;&#x437;&#x432;&#x430;&#x43d;&#x438;&#x435; &#x441;&#x442;&#x43e;&#x43b;&#x431;&#x446;&#x430; &#x441; &#x43e;&#x43f;&#x438;&#x441;&#x430;&#x43d;&#x438;&#x435;&#x43c; &#x43f;&#x43b;&#x430;&#x442;&#x435;&#x436;&#x430;"/>
+            <Property name="text" type="java.lang.String" value="&#x41d;&#x430;&#x437;&#x432;&#x430;&#x43d;&#x438;&#x435; &#x441;&#x442;&#x43e;&#x43b;&#x431;&#x446;&#x430; &#x441; &#x43e;&#x43f;&#x438;&#x441;&#x430;&#x43d;&#x438;&#x435;&#x43c; &#x43f;&#x43b;&#x430;&#x442;&#x435;&#x436;&#x430; (NAZN, NAZ...)"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="jTextField8">
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel9">
           <Properties>
-            <Property name="text" type="java.lang.String" value="&#x41d;&#x430;&#x437;&#x432;&#x430;&#x43d;&#x438;&#x435; &#x441;&#x442;&#x43e;&#x43b;&#x431;&#x446;&#x430; &#x441; &#x43d;&#x43e;&#x43c;&#x435;&#x440;&#x43e;&#x43c; &#x441;&#x447;&#x435;&#x442;&#x430; &#x43a;&#x43e;&#x43d;&#x442;&#x440;&#x430;&#x433;&#x435;&#x43d;&#x442;&#x430;"/>
+            <Property name="text" type="java.lang.String" value="&#x41d;&#x430;&#x437;&#x432;&#x430;&#x43d;&#x438;&#x435; &#x441;&#x442;&#x43e;&#x43b;&#x431;&#x446;&#x430; &#x441; &#x43d;&#x43e;&#x43c;&#x435;&#x440;&#x43e;&#x43c; &#x441;&#x447;&#x435;&#x442;&#x430; &#x43a;&#x43e;&#x43d;&#x442;&#x440;&#x430;&#x433;&#x435;&#x43d;&#x442;&#x430; (NLSK...)"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JComboBox" name="jComboBox1">

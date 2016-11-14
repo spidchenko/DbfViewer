@@ -82,7 +82,7 @@ public class DBConnection {
         return returnStatus;
     }
     
-    int checkAndUpdateBills(String [] problemsToReturn) throws IOException{  //Возвращает количество обновленных строчек
+    int checkAndUpdateBills(String [] problemsToReturn){  //Возвращает количество обновленных строчек
         int rowUpdatedCounter = 0;
         if (!isInitDone) init();
         try{

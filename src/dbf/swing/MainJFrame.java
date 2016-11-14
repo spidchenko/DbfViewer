@@ -14,10 +14,11 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.io.*;
+import java.io.File;
+import java.io.PrintWriter;
 import javax.swing.JOptionPane;
 
 /**
- * СДЕЛАТЬ ПРОВЕРКУ НА СИГНАТУРУ ДБФ ФАЙЛА!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!111111111111111111
  * Сохранять логи оплаченых! по имени выписки+ _good.txt, _bad.txt, _duplicate.txt
  * Сделать проверку счета контрагента и дебеткредит                             отобрать может только с этим счетом? нужно смотреть боевой файл-выписку
  * Сделать цикл оплат в отдельном потоке!                                       сложно, отложить
@@ -180,7 +181,7 @@ public class MainJFrame extends javax.swing.JFrame {
     DBConnection dBConn = null;
     int goodPaymentsNum = 0;
     int badPaymentsNum = 0;
-    int paidPaymentsNum = 0;
+    int duplicatePaymentsNum = 0;
     javax.swing.table.DefaultTableModel tableModel;
     String[] columsToShow;
     
@@ -395,10 +396,12 @@ public class MainJFrame extends javax.swing.JFrame {
         FileNameExtensionFilter filter = new FileNameExtensionFilter("Файлы .dbf","dbf");
         fileChooser.setFileFilter(filter);
         int ret = fileChooser.showOpenDialog(null);
-        if (ret == JFileChooser.APPROVE_OPTION) {
-            java.io.File file = fileChooser.getSelectedFile();
-            currentFile = new DbfFile(file.toString(), currentSettings.fields.getDbfEncoding());
+        if (ret == JFileChooser.APPROVE_OPTION) 
+        try{
             
+            java.io.File file = fileChooser.getSelectedFile();
+            currentFile = new DbfFile(file, currentSettings.fields.getDbfEncoding());
+            //System.out.println(file.getName());
             Object[][] tableData = currentFile.getTableDataToShow();
             String [] tableTitles = currentFile.getTableTitles();
             
@@ -422,30 +425,16 @@ public class MainJFrame extends javax.swing.JFrame {
             }
             jTable1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);  //Никакого авторесайза столбцов по ширине окна!            
             
-            //Поможем сборщику?
+            //Поможем сборщику мусора?
             tableData = null;
             tableTitles = null;
 
-//            if (jTable1.getColumnModel().getColumnCount() > 0) {
-//                for(int i = 0; i< currentFile.getNumOfFields(); i++){
-//                    jTable1.getColumnModel().getColumn(i).setMinWidth(currentFile.getFieldArray()[i].getSize()*8);
-//                }
-//            }
-            //PZDC!
-            //jTextField1.setText(Arrays.toString(currentFile.getTableTitles()).substring(1,Arrays.toString(currentFile.getTableTitles()).length()-1));
-            
-            //Здесь работает
-            //jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(currentFile.getTableTitles()));
-            //jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(currentFile.getTableTitles()));
-            
             jScrollPane1.setToolTipText(""); //Очистили текст подсказки
             jButton2.setEnabled(true);       //Активировали кнопку "убрать.." 
-            
-            //jButton3.setEnabled(true);
-            //currentFile.printFileInfo();
-            //currentFile.printRecords();
-
-        }
+           
+         }catch(BadFileException badFileExc){
+             JOptionPane.showMessageDialog(null, "Ошибка открытия .dbf файла.\nВозможно он поврежден или имеет недопустимый формат", "Невозможно открыть файл!", JOptionPane.ERROR_MESSAGE);
+         }
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
@@ -508,35 +497,74 @@ public class MainJFrame extends javax.swing.JFrame {
         Pattern codePattern = Pattern.compile("\\d{13}");   //13 цифр подряд
         String [] paymentsSum = currentFile.getDetalsOfPayment(currentSettings.fields.getDbfColumnSumName());                //Настройки
         String [] paymentsDescription = currentFile.getDetalsOfPayment(currentSettings.fields.getDbfColumnDescriptionName());        //Настройки
+        
+//        int paymentsDescriptionObjectSize = 0;
+//        for (int i = 0; i < paymentsDescription.length; i++)
+//            paymentsDescriptionObjectSize += paymentsDescription[i].length();
+//        paymentsDescriptionObjectSize += 64*paymentsDescription.length;
+//        System.out.println("paymrentsDescriptionObjectSize = "+paymentsDescriptionObjectSize+ " bytes");
         goodPaymentsNum = 0;
         badPaymentsNum = 0;
-        paidPaymentsNum = 0;
+        duplicatePaymentsNum = 0;
         
         //Запустим новый поток с циклом выставления оплат в базу
         //так приложение не будет зависать на время работы с базой 
         Thread doPayments = new Thread(new Runnable(){
             public void run(){
                 try{
-                    for (int i = 0; i < paymentsDescription.length; i++){
-
-                        Matcher matcher = codePattern.matcher(paymentsDescription[i]);
-                        if ((matcher.find())&&(paymentsSum[i].equals(currentSettings.fields.getDbfCorrectSum()))){                  //Настройки
-                            if (dBConn.writePayment(matcher.group())){
-                                goodPaymentsNum++;
-                            }else{
-                                paidPaymentsNum++;
-                            }
-                        } else {
-                            System.out.println("Ошибка в номере платежа или сумме: "+paymentsSum[i]+" грн. Описание платежа \""+paymentsDescription[i]+"\"");
-                            badPaymentsNum++;
-                        }
-
-                        jProgressBar1.setValue(i);
+                    File fileSuccess = new File(currentFile.getFile().getName()+"_Success.txt");
+                    File fileFail = new File(currentFile.getFile().getName()+"_Fail.txt");
+                    File fileDuplicates = new File(currentFile.getFile().getName()+"_Duplicates.txt");
+                    if(!fileSuccess.exists()){
+                        fileSuccess.createNewFile();
                     }
-                    PaymentsDoneJDialog dialog = new PaymentsDoneJDialog(new javax.swing.JFrame(), true, goodPaymentsNum, badPaymentsNum, paidPaymentsNum);
+                    if(!fileFail.exists()){
+                        fileFail.createNewFile();
+                    }
+                    if(!fileDuplicates.exists()){
+                        fileDuplicates.createNewFile();
+                    }
+                    
+                    PrintWriter outSuccess = new PrintWriter(fileSuccess.getAbsoluteFile());
+                    PrintWriter outFail = new PrintWriter(fileFail.getAbsoluteFile());
+                    PrintWriter outDuplicates = new PrintWriter(fileDuplicates.getAbsoluteFile());
+                    
+                    
+                    
+                    //System.out.println(currentFile.getFile().getName());
+                    try{
+                        
+                        for (int i = 0; i < paymentsDescription.length; i++){
+
+                            Matcher matcher = codePattern.matcher(paymentsDescription[i]);
+                            if ((matcher.find())&&(paymentsSum[i].equals(currentSettings.fields.getDbfCorrectSum()))){                  //Настройки
+                                if (dBConn.writePayment(matcher.group())){
+                                    goodPaymentsNum++;
+                                    outSuccess.println(("Оплачено: "+paymentsSum[i]+" грн. Описание платежа \""+paymentsDescription[i]+"\""));
+                                }else{
+                                    duplicatePaymentsNum++;
+                                    outDuplicates.println("Возможно повторный платеж: "+paymentsSum[i]+" грн. Описание платежа \""+paymentsDescription[i]+"\"");
+                                }
+                            } else {
+                                outFail.println("Ошибка в номере платежа или сумме: "+paymentsSum[i]+" грн. Описание платежа \""+paymentsDescription[i]+"\"");
+                                System.out.println("Ошибка в номере платежа или сумме: "+paymentsSum[i]+" грн. Описание платежа \""+paymentsDescription[i]+"\"");
+                                badPaymentsNum++;
+                            }
+
+                            jProgressBar1.setValue(i);
+                        }
+                    } finally{
+                        //Закрыли файловые потоки:
+                        outSuccess.close();
+                        outFail.close();
+                        outDuplicates.close();
+                    }
+                    PaymentsDoneJDialog dialog = new PaymentsDoneJDialog(new javax.swing.JFrame(), true, goodPaymentsNum, badPaymentsNum, duplicatePaymentsNum);
                     dialog.setVisible(true);
                 } catch (NullPointerException nullEx){
                     JOptionPane.showMessageDialog(null, "Нет соединения с базой данных.\nПроверьте настройки и попробуйте еще раз", "Ошибка БД!", JOptionPane.ERROR_MESSAGE);
+                } catch (IOException ex) {
+                    Logger.getLogger(MainJFrame.class.getName()).log(Level.SEVERE, null, ex);
                 } finally{
                     //System.out.println("Поток doPayments завершился!");                 //!!!
                     dBConn.closeConnection();
