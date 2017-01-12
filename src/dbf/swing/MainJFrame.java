@@ -495,8 +495,9 @@ public class MainJFrame extends javax.swing.JFrame {
         dBConn.init();
         
         Pattern codePattern = Pattern.compile("\\d{13}");   //13 цифр подряд
-        String [] paymentsSum = currentFile.getDetalsOfPayment(currentSettings.fields.getDbfColumnSumName());                //Настройки
-        String [] paymentsDescription = currentFile.getDetalsOfPayment(currentSettings.fields.getDbfColumnDescriptionName());        //Настройки
+        String [] paymentsSum = currentFile.getDetalsOfPayment(currentSettings.fields.getDbfColumnSumName());                       //Настройки - столбец "сумма платежа"
+        String [] paymentsDescription = currentFile.getDetalsOfPayment(currentSettings.fields.getDbfColumnDescriptionName());       //Настройки - столбец "описание платежа"
+        String [] paymentsBankAccount = currentFile.getDetalsOfPayment(currentSettings.fields.getDbfColumnBankAccountName());       //Настройки - столбец "номер счета контрагента"
         
 //        int paymentsDescriptionObjectSize = 0;
 //        for (int i = 0; i < paymentsDescription.length; i++)
@@ -535,23 +536,29 @@ public class MainJFrame extends javax.swing.JFrame {
                     try{
                         
                         for (int i = 0; i < paymentsDescription.length; i++){
+                            
+                            if (!paymentsBankAccount[i].equals(currentSettings.fields.getDbfBankAccountNumber())){  
+                                continue;       //Пропускаем запись если номер счета контрагента != (Настройки - номер счета контрагента)
+                            }                            
 
                             Matcher matcher = codePattern.matcher(paymentsDescription[i]);
-                            if ((matcher.find())&&(paymentsSum[i].equals(currentSettings.fields.getDbfCorrectSum()))){                  //Настройки
+                            if ((matcher.find())&&                                                      //Если нашли в описании платежа 13 цифр подряд
+                                (paymentsSum[i].equals(currentSettings.fields.getDbfCorrectSum()))){    //..и сумма платежа == (Настройки - сумма платежа)
+                                  
                                 if (dBConn.writePayment(matcher.group())){
                                     goodPaymentsNum++;
                                     outSuccess.println(("Оплачено: "+paymentsSum[i]+" грн. Описание платежа \""+paymentsDescription[i]+"\""));
-                                }else{
+                                }else{      //writePayment вернул false
                                     duplicatePaymentsNum++;
                                     outDuplicates.println("Возможно повторный платеж: "+paymentsSum[i]+" грн. Описание платежа \""+paymentsDescription[i]+"\"");
                                 }
-                            } else {
+                            } else {        //тройное условие вернуло false
                                 outFail.println("Ошибка в номере платежа или сумме: "+paymentsSum[i]+" грн. Описание платежа \""+paymentsDescription[i]+"\"");
                                 System.out.println("Ошибка в номере платежа или сумме: "+paymentsSum[i]+" грн. Описание платежа \""+paymentsDescription[i]+"\"");
                                 badPaymentsNum++;
                             }
 
-                            jProgressBar1.setValue(i);
+                            jProgressBar1.setValue(i);      //Двигаем прогресс бар в другом потоке!
                         }
                     } finally{
                         //Закрыли файловые потоки:

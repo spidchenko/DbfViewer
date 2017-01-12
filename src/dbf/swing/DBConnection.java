@@ -42,7 +42,8 @@ public class DBConnection {
                         "JOIN `area` ON area.id = obl\n" +
                         "LEFT OUTER JOIN `city` ON city.id = area\n" +
                         "LEFT OUTER JOIN `region` ON region.id = area\n" +
-                        "WHERE subject_user.end = 1";
+                        "WHERE subject_user.end = 1\n" +
+                        "ORDER BY `users`.`id` ASC"; 
     
     private boolean isInitDone = false;
     
@@ -143,13 +144,11 @@ public class DBConnection {
                 } else {
                     status = "WTF?";
                 }
-
-                //String status = (bill.equals(newBill))? "OK!" : "ERROR ON THIS LINE!";
-                //System.out.print(++i +". ");
+                
                 if (status.equals("WTF?")) problemsToReturn[i++] = "Код в базе <"+bill+"> отличается от вычисленного <"+newBill+">!";
                 /*if (status.equals("WTF?"))*/ System.out.printf("%4d. %2s | %s | %2s | %1s | %4s | %2s | %5s | %13s << = >> %13s -%s\n",j++, subjectId, langId, cityPassageId, areaId, cityId, regionId, userId4Digit, bill, newBill, status);
-                //if (bill.equals(newBill)) System.out.println("  -GOTCHA!");
-                //else {System.out.println("  x WRONG!");}
+                if (bill.equals(newBill)) System.out.println("  -GOTCHA!");
+                else {System.out.println("  x WRONG!");}
             }
         } catch (SQLException sqlEx) {
             sqlEx.printStackTrace();
