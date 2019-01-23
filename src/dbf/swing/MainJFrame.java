@@ -392,8 +392,8 @@ public class MainJFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        JFileChooser fileChooser = new JFileChooser();
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("Файлы .dbf","dbf");
+        JFileChooser fileChooser = new JFileChooser(".");   //Curent folder
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Файлы .exp","exp");
         fileChooser.setFileFilter(filter);
         int ret = fileChooser.showOpenDialog(null);
         if (ret == JFileChooser.APPROVE_OPTION) 
@@ -526,9 +526,9 @@ public class MainJFrame extends javax.swing.JFrame {
                         fileDuplicates.createNewFile();
                     }
                     
-                    PrintWriter outSuccess = new PrintWriter(fileSuccess.getAbsoluteFile());
-                    PrintWriter outFail = new PrintWriter(fileFail.getAbsoluteFile());
-                    PrintWriter outDuplicates = new PrintWriter(fileDuplicates.getAbsoluteFile());
+                    PrintWriter outSuccess = new PrintWriter(fileSuccess.getAbsoluteFile(), "UTF8");
+                    PrintWriter outFail = new PrintWriter(fileFail.getAbsoluteFile(), "UTF8");
+                    PrintWriter outDuplicates = new PrintWriter(fileDuplicates.getAbsoluteFile(), "UTF8");
                     
                     
                     
@@ -538,6 +538,7 @@ public class MainJFrame extends javax.swing.JFrame {
                         for (int i = 0; i < paymentsDescription.length; i++){
                             
                             if (!paymentsBankAccount[i].equals(currentSettings.fields.getDbfBankAccountNumber())){  
+                                jProgressBar1.setValue(i);      //Двигаем прогресс бар в другом потоке!
                                 continue;       //Пропускаем запись если номер счета контрагента != (Настройки - номер счета контрагента)
                             }                            
 

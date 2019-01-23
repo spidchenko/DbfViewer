@@ -72,14 +72,6 @@ public class DBConnection {
             //sqlEx.printStackTrace();
             //Героически молчим, красный текст в окне и так появися, а трэйс не поможет понять ошибку
         }
-        //Подумать, нужно ли здесь файнали, это же инициализация
-//        } finally {
-//            //close connection ,stmt and resultset here
-//            try { con.close(); } catch(SQLException se) { /*can't do anything */ }
-//            try { stmt.close(); } catch(SQLException se) { /*can't do anything */ }
-//            try { updateStmt.close(); } catch(SQLException se) { /*can't do anything */ }
-//            try { rs.close(); } catch(SQLException se) { /*can't do anything */ }
-//        }
         return returnStatus;
     }
     
