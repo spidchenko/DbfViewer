@@ -1,3 +1,4 @@
 /dist/
 *.txt
 Settings.dat
+/out/
