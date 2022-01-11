@@ -393,7 +393,7 @@ public class MainJFrame extends javax.swing.JFrame {
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         JFileChooser fileChooser = new JFileChooser(".");   //Curent folder
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("Файлы .exp","exp");
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Файлы .dbf","dbf");
         fileChooser.setFileFilter(filter);
         int ret = fileChooser.showOpenDialog(null);
         if (ret == JFileChooser.APPROVE_OPTION) 
